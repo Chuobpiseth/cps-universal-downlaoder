@@ -1,0 +1,23 @@
+{
+  "name": "cps-universal-downloader-react",
+  "private": true,
+  "version": "1.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "latest",
+    "@fortawesome/free-brands-svg-icons": "latest",
+    "@fortawesome/free-solid-svg-icons": "latest",
+    "@fortawesome/react-fontawesome": "latest",
+    "@huggingface/transformers": "^4.3.0",
+    "@vitejs/plugin-react": "latest",
+    "lucide-react": "latest",
+    "vite": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {}
+}

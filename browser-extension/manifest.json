@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "CPS Universal Downloader Extension",
+  "version": "3.4.0",
+  "description": "Send supported video pages to CPS Universal Downloader Premium.",
+  "permissions": ["activeTab", "contextMenus", "storage", "scripting"],
+  "host_permissions": ["http://127.0.0.1:38473/*"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_popup": "popup.html", "default_title": "CPS Universal Downloader", "default_icon": { "512": "icons/icon512.png" } },
+  "icons": { "512": "icons/icon512.png" },
+  "content_scripts": [{ "matches": ["http://*/*", "https://*/*"], "js": ["content.js"], "css": ["styles.css"], "run_at": "document_idle", "all_frames": true }]
+}

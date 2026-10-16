@@ -1,0 +1,16 @@
+.venv/
+frontend/node_modules/
+frontend/dist/
+build/
+build-temp/
+build-temp-*/
+build-update/
+build-v*/
+release/
+*.spec
+__pycache__/
+data/
+.cps-runtime/
+.tmp-yt/
+license-tools/secrets/
+.smoke-*/
