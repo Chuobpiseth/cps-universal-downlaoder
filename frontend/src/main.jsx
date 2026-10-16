@@ -89,7 +89,7 @@ const khmer = {
   // About Page
   'Free, open source, and privacy-focused media workspace': 'កន្លែងការងារមេឌៀឥតគិតថ្លៃ ប្រភពបើកចំហ និងផ្តោតលើភាពឯកជន',
   '100% Free & Open Source • MIT License': '100% ឥតគិតថ្លៃ & កូដចំហ (Open Source) • អាជ្ញាប័ណ្ណ MIT',
-  Version: 'កំណែ', 'Active Engine': 'Engine កំពុងដំណើរការ', 'Portable Edition': 'ជំនាន់ Portable (មិនបាច់ដំឡើង)',
+  Version: 'កំណែ', 'Active Engine': 'Engine កំពុងដំណើរការ',
   'A lightning-fast, privacy-first desktop workspace to download media from YouTube, TikTok, Facebook, Douyin, SharePoint, and 1,000+ platforms. Features native FFmpeg media conversion, multi-provider AI assistance (Groq Cloud, OpenRouter, CodeCraft, Inception Labs, Google Gemini), and zero tracking.': 'កម្មវិធីកុំព្យូទ័រល្បឿនលឿន និងសុវត្ថិភាពខ្ពស់ សម្រាប់ទាញយកវីដេអូពី YouTube, TikTok, Facebook, Douyin, SharePoint និងគេហទំព័រជាង ១០០០+ ផ្សេងទៀត។ មានភ្ជាប់មកជាមួយនូវម៉ាស៊ីនបម្លែង FFmpeg, ជំនួយការ AI ច្រើនប្រភព (Groq Cloud, OpenRouter, CodeCraft, Inception Labs, Google Gemini) និងគ្មានការតាមដានទិន្នន័យឡើយ។',
   'Turbo Concurrent Engine': 'ប្រព័ន្ធទាញយកល្បឿនលឿន Turbo',
   'Resumable multi-threaded fragments, 64K buffer, and intelligent quality fallback.': 'ទាញយកល្បឿនលឿនជាច្រើនផ្នែក អាចបន្តទាញយកឡើងវិញ ជាមួយ buffer 64K និងជម្រើសគុណភាពស្វ័យប្រវត្តិ។',
@@ -1405,7 +1405,6 @@ function AboutPage({ boot, api }) {
             <div className="about-version-row">
               <span className="version-tag">{t('Version')} {boot.version}</span>
               <span className="status-indicator-tag"><span className="online-dot"/> {t('Active Engine')}</span>
-              <span className="portable-tag">{t('Portable Edition')}</span>
             </div>
           </div>
         </div>
