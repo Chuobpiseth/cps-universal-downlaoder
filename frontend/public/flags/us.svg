@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 36" role="img" aria-label="United States flag">
+  <clipPath id="us-flag-clip"><rect width="60" height="36" rx="3"/></clipPath>
+  <g clip-path="url(#us-flag-clip)">
+    <!-- 13 Stripes -->
+    <rect width="60" height="36" fill="#b22234"/>
+    <path stroke="#ffffff" stroke-width="2.769" d="M0 4.15h60M0 9.69h60M0 15.23h60M0 20.77h60M0 26.31h60M0 31.85h60"/>
+    <!-- Blue Canton -->
+    <rect width="26" height="19.38" fill="#3c3b6e"/>
+    <!-- 50 Stars pattern represented with crisp stars -->
+    <g fill="#ffffff">
+      <!-- 5 rows of 6 stars -->
+      <g id="row6">
+        <circle cx="2.6" cy="2" r="0.9"/>
+        <circle cx="6.8" cy="2" r="0.9"/>
+        <circle cx="11.0" cy="2" r="0.9"/>
+        <circle cx="15.2" cy="2" r="0.9"/>
+        <circle cx="19.4" cy="2" r="0.9"/>
+        <circle cx="23.6" cy="2" r="0.9"/>
+      </g>
+      <use href="#row6" y="3.8"/>
+      <use href="#row6" y="7.6"/>
+      <use href="#row6" y="11.4"/>
+      <use href="#row6" y="15.2"/>
+      <!-- 4 rows of 5 stars -->
+      <g id="row5">
+        <circle cx="4.7" cy="3.9" r="0.9"/>
+        <circle cx="8.9" cy="3.9" r="0.9"/>
+        <circle cx="13.1" cy="3.9" r="0.9"/>
+        <circle cx="17.3" cy="3.9" r="0.9"/>
+        <circle cx="21.5" cy="3.9" r="0.9"/>
+      </g>
+      <use href="#row5" y="3.8"/>
+      <use href="#row5" y="7.6"/>
+      <use href="#row5" y="11.4"/>
+    </g>
+  </g>
+</svg>

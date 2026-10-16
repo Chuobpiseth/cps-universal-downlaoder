@@ -31,6 +31,7 @@ APP_NAME = "CPS Universal Downloader Premium"
 APP_VERSION = "1.2.3"
 GITHUB_REPOSITORY = "Chuobpiseth/cps-universal-downlaoder"
 GITHUB_RELEASE_API = f"https://api.github.com/repos/{GITHUB_REPOSITORY}/releases/latest"
+CODECRAFT_API_BASE = "https://codecraftapi.com/v1"
 SOURCE_ROOT = Path(__file__).resolve().parents[1]
 BUNDLE_ROOT = Path(getattr(sys, "_MEIPASS", SOURCE_ROOT))
 APP_ROOT = Path(sys.executable).resolve().parent if getattr(sys, "frozen", False) else SOURCE_ROOT
@@ -67,6 +68,7 @@ def migrate_legacy_data() -> None:
             "activity-log.json",
             "workflow-recipes.json",
             "gemini-key.bin",
+            "codecraft-key.bin",
             "custom-ai-key.bin",
             "download-archive.txt",
         ):
@@ -348,6 +350,7 @@ class DesktopApi:
         self._activity_file = DATA_DIR / "activity-log.json"
         self._recipes_file = DATA_DIR / "workflow-recipes.json"
         self._key_file = DATA_DIR / "gemini-key.bin"
+        self._codecraft_key_file = DATA_DIR / "codecraft-key.bin"
         self._custom_key_file = DATA_DIR / "custom-ai-key.bin"
         self.settings = {**self._default_settings(), **self._load_json(self._settings_file, {})}
         if self.settings.get("language") == "ខ្មែរ":
@@ -387,6 +390,7 @@ class DesktopApi:
             "aiProvider": "Gemini",
             "aiFallback": True,
             "geminiModel": "gemini-2.5-flash",
+            "codecraftModel": "claude-opus-4.8",
             "customApiBase": "https://api.openai.com/v1",
             "customApiModel": "",
             "embedSubtitles": False,
@@ -488,6 +492,7 @@ class DesktopApi:
         settings = dict(self.settings)
         settings["hasGeminiKey"] = bool(self._gemini_keys())
         settings["geminiKeyCount"] = len(self._gemini_keys())
+        settings["hasCodecraftApiKey"] = self._codecraft_key_file.exists()
         settings["hasCustomApiKey"] = self._custom_key_file.exists()
         return {"name": APP_NAME, "version": APP_VERSION, "settings": settings, "queue": self.queue, "history": self.history, "activity": self.activity, "recipes": self.list_workflow_recipes(), "conversions": self.conversions, "updateStatus": dict(self._update_state), "toolsReady": all(tool_path(name).exists() for name in ("yt-dlp.exe", "ffmpeg.exe", "ffprobe.exe", "deno.exe")), "extensionReady": self._extension.ready}
 
@@ -973,7 +978,7 @@ class DesktopApi:
         return True
 
     def save_settings(self, values: dict[str, Any]) -> dict[str, Any]:
-        allowed = {"theme", "language", "saveLocation", "conversionLocation", "parallelDownloads", "concurrentFragments", "browserCookies", "preventDuplicates", "filenameTemplate", "aiProvider", "aiFallback", "geminiModel", "customApiBase", "customApiModel", "embedSubtitles", "subtitleLanguage", "sponsorBlock", "splitChapters", "updateChannel"}
+        allowed = {"theme", "language", "saveLocation", "conversionLocation", "parallelDownloads", "concurrentFragments", "browserCookies", "preventDuplicates", "filenameTemplate", "aiProvider", "aiFallback", "geminiModel", "codecraftModel", "customApiBase", "customApiModel", "embedSubtitles", "subtitleLanguage", "sponsorBlock", "splitChapters", "updateChannel"}
         with self._lock:
             for key, value in values.items():
                 if key in allowed:
@@ -984,12 +989,16 @@ class DesktopApi:
         key = str(values.get("geminiApiKey", "")).strip()
         if key:
             self.add_gemini_key(key)
+        codecraft_key = str(values.get("codecraftApiKey", "")).strip()
+        if codecraft_key:
+            self._codecraft_key_file.write_bytes(protect_secret(codecraft_key))
         custom_key = str(values.get("customApiKey", "")).strip()
         if custom_key:
             self._custom_key_file.write_bytes(protect_secret(custom_key))
         result = dict(self.settings)
         result["hasGeminiKey"] = bool(self._gemini_keys())
         result["geminiKeyCount"] = len(self._gemini_keys())
+        result["hasCodecraftApiKey"] = self._codecraft_key_file.exists()
         result["hasCustomApiKey"] = self._custom_key_file.exists()
         return result
 
@@ -1386,6 +1395,20 @@ class DesktopApi:
             if available:
                 self._log_activity("info", "update", f"Application update {latest} is available.")
             return state
+        except urllib.error.HTTPError as exc:
+            if exc.code == 404:
+                return self._set_update_state(
+                    status="current",
+                    latestVersion=APP_VERSION,
+                    available=False,
+                    progress=0,
+                    message=f"CPS Universal Downloader {APP_VERSION} is up to date (no releases published yet).",
+                )
+            state = self._set_update_state(status="error", available=False, message=f"Update check failed: {exc}")
+            if manual:
+                self._log_activity("error", "update", state["message"])
+                raise RuntimeError(state["message"]) from exc
+            return state
         except Exception as exc:
             state = self._set_update_state(status="error", available=False, message=f"Update check failed: {exc}")
             if manual:
@@ -1562,6 +1585,11 @@ class DesktopApi:
             return transient.strip()
         return unprotect_secret(self._custom_key_file.read_bytes()) if self._custom_key_file.exists() else ""
 
+    def _codecraft_secret(self, transient: str = "") -> str:
+        if transient.strip():
+            return transient.strip()
+        return unprotect_secret(self._codecraft_key_file.read_bytes()) if self._codecraft_key_file.exists() else ""
+
     def browser_extension_status(self) -> dict[str, Any]:
         result = {"ready": self._extension.ready, "port": LocalExtensionServer.PORT, "token": self.settings["apiToken"], "error": self._extension.error}
         if not self._extension.ready:
@@ -1578,6 +1606,35 @@ class DesktopApi:
     def list_ai_models(self, values: dict[str, Any] | None = None) -> list[str]:
         values = values or {}
         provider = str(values.get("aiProvider") or self.settings.get("aiProvider") or "Gemini")
+        if provider == "CodeCraft":
+            key = self._codecraft_secret(str(values.get("codecraftApiKey", "")))
+            fallback_models = [
+                "claude-opus-4.8",
+                "claude-3-5-sonnet-20241022",
+                "claude-3-5-haiku-20241022",
+                "gpt-4o",
+                "gpt-4o-mini",
+                "o1",
+                "o3-mini",
+                "deepseek-chat",
+                "deepseek-reasoner",
+                "gemini-2.0-flash",
+                "gemini-1.5-pro",
+            ]
+            if not key:
+                return fallback_models
+            headers = {"Accept": "application/json", "Authorization": f"Bearer {key}"}
+            request = urllib.request.Request(f"{CODECRAFT_API_BASE}/models", headers=headers)
+            try:
+                with urllib.request.urlopen(request, timeout=30) as response:
+                    payload = json.loads(response.read())
+                models = sorted(str(item["id"]) for item in payload.get("data", []) if item.get("id"))
+                if models:
+                    return models
+            except Exception:
+                pass
+            return fallback_models
+
         if provider == "Custom":
             key = self._custom_secret(str(values.get("customApiKey", "")))
             base = self._validate_api_base(str(values.get("customApiBase") or self.settings.get("customApiBase") or ""))
@@ -1609,6 +1666,10 @@ class DesktopApi:
         provider = str(values.get("aiProvider") or self.settings.get("aiProvider") or "Gemini")
         if provider == "Florence-2":
             return {"connected": True, "provider": provider, "models": ["onnx-community/Florence-2-base"], "message": "Local Florence-2 is ready to download on first use."}
+        if provider == "CodeCraft":
+            key = self._codecraft_secret(str(values.get("codecraftApiKey", "")))
+            if not key:
+                raise ValueError("Enter or save your CodeCraft API key first (1M free tokens at https://codecraftapi.com).")
         models = self.list_ai_models(values)
         return {"connected": True, "provider": provider, "models": models, "message": f"Connected to {provider}. {len(models)} models available."}
 
@@ -1665,6 +1726,25 @@ class DesktopApi:
         except urllib.error.HTTPError as exc:
             raise self._api_error(exc, "Custom AI request failed.") from exc
 
+    def _codecraft_generate(self, content: str | list[dict[str, Any]], timeout: int = 120) -> str:
+        key = self._codecraft_secret()
+        if not key:
+            raise ValueError("Add your CodeCraft API key in Settings first (1M free tokens at https://codecraftapi.com).")
+        model = str(self.settings.get("codecraftModel") or "claude-opus-4.8").strip()
+        messages = content if (isinstance(content, list) and content and isinstance(content[0], dict) and "role" in content[0]) else [{"role": "user", "content": content}]
+        body = json.dumps({"model": model, "messages": messages, "temperature": 0.35}).encode()
+        headers = {"Content-Type": "application/json", "Authorization": f"Bearer {key}"}
+        request = urllib.request.Request(f"{CODECRAFT_API_BASE}/chat/completions", data=body, headers=headers)
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                payload = json.loads(response.read())
+            text = str(payload["choices"][0]["message"]["content"]).strip()
+            if not text:
+                raise RuntimeError("The CodeCraft AI returned no text response.")
+            return text
+        except urllib.error.HTTPError as exc:
+            raise self._api_error(exc, "CodeCraft AI request failed.") from exc
+
     def generate_thumbnail_prompt(self, thumbnail_url: str, title: str = "", provider_override: str = "") -> str:
         thumbnail_url = validate_url(thumbnail_url)
         prompt = (
@@ -1673,8 +1753,9 @@ class DesktopApi:
             f"Video title for context: {title or 'Unknown'}. Return only the detailed prompt."
         )
         provider = provider_override or str(self.settings.get("aiProvider") or "Gemini")
-        if provider == "Custom":
-            return self._custom_generate([
+        if provider in {"Custom", "CodeCraft"}:
+            fn = self._codecraft_generate if provider == "CodeCraft" else self._custom_generate
+            return fn([
                 {"type": "text", "text": prompt},
                 {"type": "image_url", "image_url": {"url": thumbnail_url}},
             ])
@@ -1702,8 +1783,9 @@ class DesktopApi:
             f"Video title for context: {title or 'Unknown'}."
         )
         provider = provider_override or str(self.settings.get("aiProvider") or "Gemini")
-        if provider == "Custom":
-            return self._custom_generate([
+        if provider in {"Custom", "CodeCraft"}:
+            fn = self._codecraft_generate if provider == "CodeCraft" else self._custom_generate
+            return fn([
                 {"type": "text", "text": prompt},
                 {"type": "image_url", "image_url": {"url": thumbnail_url}},
             ])
@@ -1720,6 +1802,40 @@ class DesktopApi:
             {"inline_data": {"mime_type": mime_type, "data": base64.b64encode(image_data).decode("ascii")}},
             {"text": prompt},
         ])
+
+    def download_thumbnail(self, thumbnail_url: str, title: str = "") -> dict[str, Any]:
+        thumbnail_url = validate_url(thumbnail_url)
+        save_dir = Path(self.settings.get("saveLocation") or Path.home() / "Downloads")
+        save_dir.mkdir(parents=True, exist_ok=True)
+        request = urllib.request.Request(
+            thumbnail_url,
+            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
+        )
+        with urllib.request.urlopen(request, timeout=30) as response:
+            content_type = response.headers.get_content_type()
+            data = response.read(25 * 1024 * 1024)
+        ext = ".jpg"
+        if "png" in content_type:
+            ext = ".png"
+        elif "webp" in content_type:
+            ext = ".webp"
+        elif "gif" in content_type:
+            ext = ".gif"
+        stem = self._safe_stem(title or "video_thumbnail")[:60] or "video_thumbnail"
+        filename = f"{stem}_thumbnail{ext}"
+        destination = save_dir / filename
+        counter = 1
+        while destination.exists():
+            destination = save_dir / f"{stem}_thumbnail_{counter}{ext}"
+            counter += 1
+        destination.write_bytes(data)
+        self._log_activity("info", "thumbnail", f"Downloaded thumbnail: {destination.name}")
+        return {
+            "saved": True,
+            "filename": destination.name,
+            "path": str(destination),
+            "message": f"Thumbnail saved as {destination.name}"
+        }
 
     def thumbnail_data_url(self, thumbnail_url: str) -> str:
         thumbnail_url = validate_url(thumbnail_url)
@@ -1862,7 +1978,7 @@ class DesktopApi:
         preferred = str(self.settings.get("aiProvider") or "Gemini")
         providers = [preferred]
         if self.settings.get("aiFallback", True):
-            providers.extend(provider for provider in ("Gemini", "Custom") if provider != preferred)
+            providers.extend(provider for provider in ("Gemini", "CodeCraft", "Custom") if provider != preferred)
         errors = []
         for provider in providers:
             if provider == "Florence-2":
@@ -1876,6 +1992,25 @@ class DesktopApi:
     def _ai_chat_provider(self, provider: str, prompt: str, video_url: str, messages: list[dict[str, str]]) -> str:
         context = f"Video link: {video_url}\n" if video_url else ""
         prior_messages = messages[:-1] if messages and messages[-1].get("role") == "You" and messages[-1].get("text") == prompt else messages
+        if provider == "CodeCraft":
+            key = self._codecraft_secret()
+            if not key:
+                raise ValueError("Add your CodeCraft API key in Settings first (1M free tokens at https://codecraftapi.com).")
+            model = str(self.settings.get("codecraftModel") or "claude-opus-4.8").strip()
+            conversation = [{"role": "system", "content": f"You are the CPS video assistant. Be concise and useful.\n{context}"}]
+            for item in prior_messages[-12:]:
+                conversation.append({"role": "user" if item.get("role") == "You" else "assistant", "content": str(item.get("text", ""))})
+            conversation.append({"role": "user", "content": prompt})
+            body = json.dumps({"model": model, "messages": conversation, "temperature": 0.4}).encode()
+            headers = {"Content-Type": "application/json", "Authorization": f"Bearer {key}"}
+            request = urllib.request.Request(f"{CODECRAFT_API_BASE}/chat/completions", data=body, headers=headers)
+            try:
+                with urllib.request.urlopen(request, timeout=90) as response:
+                    payload = json.loads(response.read())
+                return str(payload["choices"][0]["message"]["content"]).strip()
+            except urllib.error.HTTPError as exc:
+                raise self._api_error(exc, "CodeCraft AI request failed.") from exc
+
         if provider == "Custom":
             key = self._custom_secret()
             base = self._validate_api_base(str(self.settings.get("customApiBase") or ""))

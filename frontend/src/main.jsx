@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBolt, faClipboard, faDownload, faMusic, faSearch, faWandMagicSparkles } from '@fortawesome/free-solid-svg-icons'
 import {
   Activity, Bot, Check, ChevronLeft, ChevronRight, Clipboard, Clock3, Copy,
-  Download, FileAudio, FileVideo, FolderOpen, Gauge, History,
+  Download, Eye, FileAudio, FileVideo, FolderOpen, Gauge, History,
   Home, Info, Languages, ListChecks, LoaderCircle, Menu, MessageCircle, Moon,
   Music2, PauseCircle, Play, Plus, Search, Send, Settings, ShieldCheck, Sparkles,
   Sun, Trash2, UploadCloud, WandSparkles, X, Zap, Cable, KeyRound, Server, Wifi,
@@ -35,17 +35,25 @@ const khmer = {
   'Creator studio': 'ស្ទូឌីយោអ្នកបង្កើត', 'Save settings': 'រក្សាទុកការកំណត់', 'Download performance': 'ប្រសិទ្ធភាពទាញយក', 'Site authentication': 'ការផ្ទៀងផ្ទាត់គេហទំព័រ', Appearance: 'រូបរាង', 'Browser extension': 'ផ្នែកបន្ថែមកម្មវិធីរុករក',
   'About CPS Universal Downloader': 'អំពី CPS Universal Downloader', 'A modern portable media workflow': 'ឧបករណ៍មេឌៀទំនើប និងចល័ត', 'Made by Chuob Piseth': 'បង្កើតដោយ Chuob Piseth', 'Private local workflow': 'ដំណើរការឯកជនក្នុងម៉ាស៊ីន',
   'Open download folder': 'បើកថតទាញយក', 'Select all': 'ជ្រើសទាំងអស់', 'Deselect all': 'ដោះជម្រើសទាំងអស់', Copy: 'ចម្លង', Send: 'ផ្ញើ', Browse: 'ស្វែងរក', Cancel: 'បោះបង់', Remove: 'លុប'
-  , System: 'តាមប្រព័ន្ធ', Light: 'ភ្លឺ', Dark: 'ងងឹត', 'Download folder': 'ថតទាញយក', 'Parallel downloads': 'ការទាញយកស្របគ្នា', 'Fragments per download': 'ផ្នែកក្នុងមួយការទាញយក', 'Filename template': 'ទម្រង់ឈ្មោះឯកសារ', 'Prevent duplicate downloads': 'ការពារការទាញយកស្ទួន', 'Use browser cookies': 'ប្រើខូគីកម្មវិធីរុករក', 'AI provider and model': 'អ្នកផ្តល់ AI និងម៉ូដែល', 'Download enhancements': 'មុខងារបន្ថែមការទាញយក', 'Authentication test': 'សាកល្បងការផ្ទៀងផ្ទាត់', 'Export extension': 'នាំចេញផ្នែកបន្ថែម', 'Test connection': 'សាកល្បងការតភ្ជាប់'
+  , System: 'តាមប្រព័ន្ធ', Light: 'ភ្លឺ', Dark: 'ងងឹត', 'Liquid Glass': 'កញ្ចក់ថ្លា', 'Download folder': 'ថតទាញយក', 'Parallel downloads': 'ការទាញយកស្របគ្នា', 'Fragments per download': 'ផ្នែកក្នុងមួយការទាញយក', 'Filename template': 'ទម្រង់ឈ្មោះឯកសារ', 'Prevent duplicate downloads': 'ការពារការទាញយកស្ទួន', 'Use browser cookies': 'ប្រើខូគីកម្មវិធីរុករក', 'AI provider and model': 'អ្នកផ្តល់ AI និងម៉ូដែល', 'Download enhancements': 'មុខងារបន្ថែមការទាញយក', 'Authentication test': 'សាកល្បងការផ្ទៀងផ្ទាត់', 'Export extension': 'នាំចេញផ្នែកបន្ថែម', 'Test connection': 'សាកល្បងការតភ្ជាប់'
 }
 
 function PlatformLogo({ name, label }) {
   return <span className="platform-logo"><img src={`./platforms/${name}.svg`} alt=""/><span>{label}</span></span>
 }
 
+function GitHubIcon({ size = 20, className = "" }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} role="img" aria-label="GitHub">
+      <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+    </svg>
+  )
+}
+
 function waitForApi() {
   const preview = new URLSearchParams(location.search)
   if (preview.has('preview')) {
-    const settings = { theme: preview.get('theme') || 'Light', language: preview.get('language') || 'English', saveLocation: 'C:\\Users\\User\\Downloads', conversionLocation: 'C:\\Users\\User\\Videos\\CPS Converted', parallelDownloads: 2, concurrentFragments: 4, browserCookies: 'None', preventDuplicates: true, filenameTemplate: '%(title)s [%(id)s].%(ext)s', apiToken: 'local-preview-token', aiProvider: 'Gemini', geminiModel: 'gemini-2.5-flash', customApiBase: 'https://api.openai.com/v1', customApiModel: '', subtitleLanguage: 'en', embedSubtitles: false, sponsorBlock: false, splitChapters: false, updateChannel: 'Stable', hasGeminiKey: false, hasCustomApiKey: false }
+    const settings = { theme: preview.get('theme') || 'Light', language: preview.get('language') || 'English', saveLocation: 'C:\\Users\\User\\Downloads', conversionLocation: 'C:\\Users\\User\\Videos\\CPS Converted', parallelDownloads: 2, concurrentFragments: 4, browserCookies: 'None', preventDuplicates: true, filenameTemplate: '%(title)s [%(id)s].%(ext)s', apiToken: 'local-preview-token', aiProvider: 'Gemini', geminiModel: 'gemini-2.5-flash', codecraftModel: 'claude-opus-4.8', customApiBase: 'https://api.openai.com/v1', customApiModel: '', subtitleLanguage: 'en', embedSubtitles: false, sponsorBlock: false, splitChapters: false, updateChannel: 'Stable', hasGeminiKey: false, hasCodecraftApiKey: false, hasCustomApiKey: false }
     return Promise.resolve({ bootstrap: async () => ({ version: '1.2.3-preview', settings, queue: [], history: [], activity: [], recipes: [], conversions: [], updateStatus: { status: 'current', currentVersion: '1.2.3-preview', available: false, message: 'Preview build' }, toolsReady: true, extensionReady: true }), get_state: async () => ({ queue: [], history: [], activity: [], recipes: [], conversions: [], updateStatus: { status: 'current', currentVersion: '1.2.3-preview', available: false, message: 'Preview build' }, running: false }), list_gemini_keys_masked: async () => [] })
   }
   if (window.pywebview?.api) return Promise.resolve(window.pywebview.api)
@@ -160,6 +168,8 @@ function App() {
   const [convertFiles, setConvertFiles] = useState([])
   const [convertFormat, setConvertFormat] = useState('MP4')
   const [conversions, setConversions] = useState([])
+  const [viewingThumbnail, setViewingThumbnail] = useState(null)
+  const [downloadingThumb, setDownloadingThumb] = useState(false)
   const t = value => settingsDraft?.language === 'Khmer' ? (khmer[value] || value) : value
 
   useEffect(() => {
@@ -185,9 +195,16 @@ function App() {
   useEffect(() => {
     const mediaQuery = matchMedia('(prefers-color-scheme: dark)')
     const apply = () => {
-      const actual = theme === 'System' ? (mediaQuery.matches ? 'Dark' : 'Light') : theme
-      document.documentElement.dataset.theme = actual.toLowerCase()
-      document.documentElement.style.colorScheme = actual.toLowerCase()
+      let actual
+      if (theme === 'System') {
+        actual = mediaQuery.matches ? 'dark' : 'light'
+      } else if (theme === 'Liquid Glass' || theme === 'liquid-glass') {
+        actual = 'liquid-glass'
+      } else {
+        actual = theme.toLowerCase()
+      }
+      document.documentElement.dataset.theme = actual
+      document.documentElement.style.colorScheme = actual === 'light' ? 'light' : 'dark'
     }
     apply()
     mediaQuery.addEventListener?.('change', apply)
@@ -244,6 +261,16 @@ function App() {
     try { setUrl(await navigator.clipboard.readText()) } catch { setToast('Press Ctrl+V to paste the link') }
   }
 
+  async function saveThumbnailNow(thumbUrl = media?.thumbnail, title = media?.title) {
+    if (!thumbUrl) return
+    try {
+      setDownloadingThumb(true)
+      const result = await api.download_thumbnail(thumbUrl, title)
+      setToast(result.message || 'Thumbnail saved to Downloads')
+    } catch (error) { setToast(errorText(error)) }
+    finally { setDownloadingThumb(false) }
+  }
+
   async function startSelected() {
     const result = await api.start_downloads(waitingIds)
     if (result.started) { setPage('Downloads'); setToast(`${result.count} downloads started`) } else setToast(result.message)
@@ -275,7 +302,7 @@ function App() {
       setBusy(true); setAiConnection({ checking: true })
       const result = await api.test_ai_connection(settingsDraft)
       setModels(result.models); setAiConnection(result)
-      const modelKey = result.provider === 'Custom' ? 'customApiModel' : result.provider === 'Gemini' ? 'geminiModel' : ''
+      const modelKey = result.provider === 'Custom' ? 'customApiModel' : result.provider === 'Gemini' ? 'geminiModel' : result.provider === 'CodeCraft' ? 'codecraftModel' : ''
       if (modelKey && result.models.length && !result.models.includes(settingsDraft[modelKey])) setSettingsDraft(current => ({ ...current, [modelKey]: result.models[0] }))
       setToast(result.message)
     } catch (error) { setAiConnection({ connected: false, message: errorText(error) }); setToast(errorText(error)) } finally { setBusy(false) }
@@ -317,7 +344,7 @@ function App() {
     if (!media.thumbnail) throw new Error('This video does not provide a thumbnail to analyze.')
 
     const preferred = settingsDraft.aiProvider || 'Gemini'
-    const fallbackOrder = preferred === 'Florence-2' ? ['Gemini', 'Custom'] : preferred === 'Gemini' ? ['Custom', 'Florence-2'] : ['Gemini', 'Florence-2']
+    const fallbackOrder = preferred === 'Florence-2' ? ['CodeCraft', 'Gemini', 'Custom'] : preferred === 'Gemini' ? ['CodeCraft', 'Custom', 'Florence-2'] : preferred === 'CodeCraft' ? ['Gemini', 'Custom', 'Florence-2'] : ['CodeCraft', 'Gemini', 'Florence-2']
     const providers = settingsDraft.aiFallback === false ? [preferred] : [...new Set([preferred, ...fallbackOrder])]
     const errors = []
     for (const provider of providers) {
@@ -405,7 +432,7 @@ function App() {
               <span>v{updateStatus.latestVersion} Available</span>
             </button>
           )}
-          <div className="select-shell language-select"><img className="language-flag" src={settingsDraft.language === 'Khmer' ? './flags/cambodia.svg' : './flags/english.svg'} alt=""/><select aria-label="Language" value={settingsDraft.language} onChange={event => setPreference('language', event.target.value)}><option value="English">English</option><option value="Khmer">ខ្មែរ</option></select></div><div className="select-shell">{theme === 'Dark' ? <Moon size={18}/> : <Sun size={18}/>}<select aria-label="Theme" value={theme} onChange={event => setPreference('theme', event.target.value)}><option value="System">{t('System')}</option><option value="Light">{t('Light')}</option><option value="Dark">{t('Dark')}</option></select></div>
+          <div className="select-shell language-select"><img className="language-flag" src={settingsDraft.language === 'Khmer' ? './flags/cambodia.svg' : './flags/us.svg'} alt=""/><select aria-label="Language" value={settingsDraft.language} onChange={event => setPreference('language', event.target.value)}><option value="English">English</option><option value="Khmer">ខ្មែរ</option></select></div><div className="select-shell">{theme === 'Dark' ? <Moon size={18}/> : theme === 'Liquid Glass' ? <Sparkles size={18}/> : <Sun size={18}/>}<select aria-label="Theme" value={theme} onChange={event => setPreference('theme', event.target.value)}><option value="System">{t('System')}</option><option value="Light">{t('Light')}</option><option value="Dark">{t('Dark')}</option><option value="Liquid Glass">{t('Liquid Glass')}</option></select></div>
         </div>
       </header>
 
@@ -432,7 +459,7 @@ function App() {
             <Card className="home-presets-card"><div className="card-title compact"><div><span className="section-icon orange"><FontAwesomeIcon icon={faBolt}/></span><h2>Quick presets</h2></div></div><Button icon={Download} variant="primary" className="home-download-button" onClick={downloadNow} disabled={busy || (!media && !url) || Boolean(media?.entries?.length && playlistSelection.length === 0)}>{busy ? 'Working…' : media?.entries?.length ? `Download ${playlistSelection.length} selected` : 'Download now'}</Button><div className="preset-grid"><button onClick={() => { setKind('Video'); setQuality('Best'); setFormat('MP4') }}><Sparkles/> Best</button><button onClick={() => { setKind('Video'); setQuality('1080p'); setFormat('MP4') }}><Zap/> 1080p</button><button onClick={() => { setKind('Video'); setQuality('720p'); setFormat('MP4') }}><Gauge/> Small</button><button onClick={() => { setKind('Audio'); setFormat('MP3') }}><FontAwesomeIcon icon={faMusic}/> MP3</button></div><p className="analyze-safety">Analyze only previews media. Downloads start only after you select videos and click this button.</p><div className="save-location"><span>Saving to</span><strong>{settingsDraft.saveLocation}</strong><IconButton onClick={() => api.open_download_folder()}><FolderOpen/></IconButton></div></Card>
           </div>
 
-          {media && <Card className="media-card"><div className="media-preview"><div className="thumb-wrap">{media.thumbnail ? <img src={media.thumbnail} alt={media.title}/> : <FileVideo size={48}/>}<div className="play-circle"><Play fill="currentColor"/></div></div><div className="media-info"><div className="media-kicker">{media.platform}</div><h2>{media.title}</h2><p className="creator">{media.creator}</p><div className="meta"><span><Clock3/> {duration(media.duration)}</span><span><Activity/> {compactNumber(media.views)} views</span>{media.entries.length > 0 && <span><ListChecks/> {media.entries.length} videos</span>}<span><Captions/> {media.subtitles?.length || 0} subtitle tracks</span><span><ListVideo/> {media.chapters?.length || 0} chapters</span></div><p className="description">{media.description}</p><div className="media-ai-actions"><Button icon={MessageCircle} onClick={() => runHomeAiSkill('summary')} disabled={Boolean(homeAiBusy)}>{homeAiBusy === 'summary' ? 'Summarizing…' : 'Quick summary'}</Button><Button icon={BrainCircuit} variant="primary" onClick={() => runHomeAiSkill('deep')} disabled={Boolean(homeAiBusy)}>{homeAiBusy === 'deep' ? 'Analyzing deeply…' : 'Deep video analysis'}</Button><Button icon={ImageIcon} onClick={() => runHomeAiSkill('thumbnail-review')} disabled={Boolean(homeAiBusy) || !media.thumbnail}>{homeAiBusy === 'thumbnail-review' ? 'Reviewing thumbnail…' : 'Thumbnail review'}</Button><Button icon={WandSparkles} onClick={() => runHomeAiSkill('thumbnail-prompt')} disabled={Boolean(homeAiBusy) || !media.thumbnail}>{homeAiBusy === 'thumbnail-prompt' ? 'Generating prompt…' : 'Thumbnail prompt'}</Button></div></div></div></Card>}
+          {media && <Card className="media-card"><div className="media-preview"><div className="thumb-container"><div className="thumb-wrap clickable" onClick={() => media.thumbnail && setViewingThumbnail(media.thumbnail)} title="Click to view full-size thumbnail">{media.thumbnail ? <img src={media.thumbnail} alt={media.title}/> : <FileVideo size={48}/>}{media.thumbnail && <div className="thumb-hover-overlay"><Eye size={22}/><span>View Full</span></div>}<div className="play-circle"><Play fill="currentColor"/></div></div>{media.thumbnail && <div className="thumb-actions-bar"><button type="button" className="thumb-btn view-btn" onClick={() => setViewingThumbnail(media.thumbnail)} title="View full-size"><Eye size={13}/> View Full</button><button type="button" className="thumb-btn download-btn" onClick={() => saveThumbnailNow(media.thumbnail, media.title)} disabled={downloadingThumb} title="Download thumbnail image to your computer"><Download size={13}/> {downloadingThumb ? 'Saving…' : 'Save Thumbnail'}</button></div>}</div><div className="media-info"><div className="media-kicker">{media.platform}</div><h2>{media.title}</h2><p className="creator">{media.creator}</p><div className="meta"><span><Clock3/> {duration(media.duration)}</span><span><Activity/> {compactNumber(media.views)} views</span>{media.entries.length > 0 && <span><ListChecks/> {media.entries.length} videos</span>}<span><Captions/> {media.subtitles?.length || 0} subtitle tracks</span><span><ListVideo/> {media.chapters?.length || 0} chapters</span></div><p className="description">{media.description}</p><div className="media-ai-actions"><Button icon={MessageCircle} onClick={() => runHomeAiSkill('summary')} disabled={Boolean(homeAiBusy)}>{homeAiBusy === 'summary' ? 'Summarizing…' : 'Quick summary'}</Button><Button icon={BrainCircuit} variant="primary" onClick={() => runHomeAiSkill('deep')} disabled={Boolean(homeAiBusy)}>{homeAiBusy === 'deep' ? 'Analyzing deeply…' : 'Deep video analysis'}</Button><Button icon={ImageIcon} onClick={() => runHomeAiSkill('thumbnail-review')} disabled={Boolean(homeAiBusy) || !media.thumbnail}>{homeAiBusy === 'thumbnail-review' ? 'Reviewing thumbnail…' : 'Thumbnail review'}</Button><Button icon={WandSparkles} onClick={() => runHomeAiSkill('thumbnail-prompt')} disabled={Boolean(homeAiBusy) || !media.thumbnail}>{homeAiBusy === 'thumbnail-prompt' ? 'Generating prompt…' : 'Thumbnail prompt'}</Button></div></div></div></Card>}
 
           {media?.formats?.length > 0 && <Card><div className="card-title"><div><h2>Format inspector</h2><p>Choose an exact stream or keep automatic Best quality.</p></div><Button icon={X} onClick={() => setFormatId('')}>Use automatic</Button></div><div className="format-grid">{media.formats.slice(0, 18).map(item => <button key={item.id} className={formatId === item.id ? 'selected' : ''} onClick={() => setFormatId(item.id)}><strong>{item.resolution}</strong><span>{item.extension.toUpperCase()} · {item.fps || '—'} FPS · {item.hdr}</span><small>{item.videoCodec} / {item.audioCodec}{item.size ? ` · ${(item.size / 1048576).toFixed(1)} MB` : ''}</small></button>)}</div></Card>}
 
@@ -452,6 +479,31 @@ function App() {
         {page === 'About' && <AboutPage boot={boot} api={api}/>} 
       </div>
     </main>
+    {viewingThumbnail && (
+      <div className="thumbnail-lightbox-backdrop" onClick={() => setViewingThumbnail(null)}>
+        <div className="thumbnail-lightbox-modal" onClick={e => e.stopPropagation()}>
+          <div className="lightbox-header">
+            <div className="lightbox-title">
+              <ImageIcon size={18}/>
+              <span>{media?.title || 'Video Thumbnail'}</span>
+            </div>
+            <IconButton onClick={() => setViewingThumbnail(null)} title="Close"><X/></IconButton>
+          </div>
+          <div className="lightbox-body">
+            <img src={viewingThumbnail} alt="Thumbnail preview"/>
+          </div>
+          <div className="lightbox-footer">
+            <span className="lightbox-meta">{media?.platform || 'Video'} • High Resolution Preview</span>
+            <div className="button-row">
+              <Button icon={Copy} onClick={() => { navigator.clipboard.writeText(viewingThumbnail); setToast('Thumbnail link copied') }}>Copy Link</Button>
+              <Button icon={Download} variant="primary" onClick={() => saveThumbnailNow(viewingThumbnail, media?.title)} disabled={downloadingThumb}>
+                {downloadingThumb ? 'Saving…' : 'Download Thumbnail'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
     {toast && <div className="toast"><Check size={18}/>{toast}</div>}
   </div></I18nContext.Provider>
 }
@@ -568,12 +620,52 @@ function SettingsPage({ draft, setDraft, browse, browseConversion, save, models,
   async function removeGeminiKey(id) { setGeminiKeys(await api.remove_gemini_key(id)) }
   return <><PageHeader title="Settings" subtitle="Performance, browser connection, AI, and appearance"/><div className="settings-columns">
     <Card><h2>{t('Download performance')}</h2><label>{t('Download folder')}<div className="input-action"><input value={draft.saveLocation} readOnly/><Button icon={FolderOpen} onClick={browse}>Browse</Button></div></label><label>Converted files folder<div className="input-action"><input value={draft.conversionLocation} readOnly/><Button icon={FolderOpen} onClick={browseConversion}>Browse</Button></div></label><div className="field-grid"><label>{t('Parallel downloads')}<select value={draft.parallelDownloads} onChange={event => set('parallelDownloads', Number(event.target.value))}>{[1,2,3,4].map(value => <option key={value}>{value}</option>)}</select></label><label>{t('Fragments per download')}<select value={draft.concurrentFragments} onChange={event => set('concurrentFragments', Number(event.target.value))}>{[1,2,4,8,16].map(value => <option key={value}>{value}</option>)}</select></label></div><p className="hint">Download and converted files can use different folders. Choose both locations before saving settings.</p><label>{t('Filename template')}<input value={draft.filenameTemplate} onChange={event => set('filenameTemplate', event.target.value)}/></label><label className="check-label"><input type="checkbox" checked={draft.preventDuplicates} onChange={event => set('preventDuplicates', event.target.checked)}/> {t('Prevent duplicate downloads')}</label></Card>
-    <Card><h2>{t('Site authentication')}</h2><p className="hint">Facebook, TikTok, Douyin, and authorized SharePoint links may need cookies from a browser where you are signed in. Close that browser first if its cookie database is locked. Owner-blocked downloads remain unavailable.</p><label>{t('Use browser cookies')}<select value={draft.browserCookies} onChange={event => set('browserCookies', event.target.value)}>{['None','Chrome','Edge','Firefox'].map(value => <option key={value}>{value}</option>)}</select></label><h2 className="section-gap">{t('Appearance')}</h2><div className="segmented">{['Light','Dark','System'].map(value => <button key={value} className={draft.theme === value ? 'selected' : ''} onClick={() => { set('theme', value); setTheme(value) }}>{value === 'Dark' ? <Moon/> : <Sun/>}{t(value)}</button>)}</div></Card>
+    <Card><h2>{t('Site authentication')}</h2><p className="hint">Facebook, TikTok, Douyin, and authorized SharePoint links may need cookies from a browser where you are signed in. Close that browser first if its cookie database is locked. Owner-blocked downloads remain unavailable.</p><label>{t('Use browser cookies')}<select value={draft.browserCookies} onChange={event => set('browserCookies', event.target.value)}>{['None','Chrome','Edge','Firefox'].map(value => <option key={value}>{value}</option>)}</select></label><h2 className="section-gap">{t('Appearance')}</h2><div className="segmented">{['Light','Dark','Liquid Glass','System'].map(value => <button key={value} className={draft.theme === value ? 'selected' : ''} onClick={() => { set('theme', value); setTheme(value) }}>{value === 'Dark' ? <Moon/> : value === 'Liquid Glass' ? <Sparkles/> : <Sun/>}{t(value)}</button>)}</div></Card>
     <Card className="wide-card update-card"><div className="card-title"><div><span className="section-icon cyan"><RefreshCw className={updateStatus?.status === 'checking' ? 'spin' : ''}/></span><h2>Application updates</h2><p>Automatically checks verified releases from GitHub and restarts after installation.</p></div><span className={`connection-pill ${updateStatus?.status === 'current' ? 'online' : ''}`}>Version {updateStatus?.currentVersion || '—'}</span></div><div className="update-layout"><div><strong>{updateStatus?.available ? `Version ${updateStatus.latestVersion} available` : updateStatus?.status === 'current' ? 'You have the latest version' : 'Release update service'}</strong><p className={updateStatus?.status === 'error' ? 'connection-error' : 'hint'}>{updateStatus?.message}</p>{['downloading','installing'].includes(updateStatus?.status) && <div className="update-progress"><span style={{ width: `${updateStatus.progress || 0}%` }}/></div>}</div><div className="button-row"><Button icon={RefreshCw} onClick={checkUpdate} disabled={['checking','downloading','installing'].includes(updateStatus?.status)}>{updateStatus?.status === 'checking' ? 'Checking…' : 'Check for updates'}</Button>{updateStatus?.available && <Button icon={Download} variant="primary" onClick={installUpdate} disabled={['downloading','installing'].includes(updateStatus?.status)}>{updateStatus?.status === 'downloading' ? `Downloading ${Math.round(updateStatus.progress || 0)}%` : updateStatus?.status === 'installing' ? 'Restarting…' : `Install ${updateStatus.latestVersion}`}</Button>}</div></div></Card>
     <Card className="wide-card extension-card"><div className="card-title"><div><span className="section-icon cyan"><Cable/></span><h2>Browser extension</h2><p>Authenticated local connection for the YouTube, TikTok, Facebook, and web video button.</p></div><span className={`connection-pill ${extensionConnection?.connected ? 'online' : ''}`}><Wifi/>{extensionConnection?.connected ? 'Connected' : 'Not tested'}</span></div><div className="extension-grid"><label>Local endpoint<input value="http://127.0.0.1:38473" readOnly/></label><label>Connection token<div className="input-action"><input value={draft.apiToken} readOnly/><Button icon={Copy} onClick={() => navigator.clipboard.writeText(draft.apiToken)}>Copy</Button></div></label><div className="button-row"><Button icon={Wifi} variant="success" onClick={testExtension}>Test connection</Button><Button icon={UploadCloud} onClick={() => api.export_browser_extension()}>Export extension</Button></div></div>{extensionConnection?.error && <p className="connection-error">{extensionConnection.error}</p>}</Card>
     <Card className="wide-card ai-settings-card">
       <div className="card-title"><div><span className="section-icon purple"><BrainCircuit/></span><h2>AI provider and model</h2><p>Choose the default provider. Automatic fallback tries another configured provider when the preferred one fails.</p></div><ShieldCheck/></div>
-      <div className="provider-switch three-providers"><button className={draft.aiProvider === 'Gemini' ? 'selected' : ''} onClick={() => set('aiProvider', 'Gemini')}><img src="./platforms/gemini.svg" alt=""/>Google Gemini</button><button className={draft.aiProvider === 'Custom' ? 'selected' : ''} onClick={() => set('aiProvider', 'Custom')}><Server/>Custom API</button><button className={draft.aiProvider === 'Florence-2' ? 'selected' : ''} onClick={() => set('aiProvider', 'Florence-2')}><MonitorUp/>Local Florence-2</button></div>
+      <div className="provider-switch four-providers">
+        <button className={draft.aiProvider === 'Gemini' ? 'selected' : ''} onClick={() => set('aiProvider', 'Gemini')}><img src="./platforms/gemini.svg" alt=""/>Google Gemini</button>
+        <button className={draft.aiProvider === 'CodeCraft' ? 'selected' : ''} onClick={() => set('aiProvider', 'CodeCraft')}><Sparkles size={16}/>CodeCraft (1M Free)</button>
+        <button className={draft.aiProvider === 'Custom' ? 'selected' : ''} onClick={() => set('aiProvider', 'Custom')}><Server/>Custom API</button>
+        <button className={draft.aiProvider === 'Florence-2' ? 'selected' : ''} onClick={() => set('aiProvider', 'Florence-2')}><MonitorUp/>Local Florence-2</button>
+      </div>
+      {draft.aiProvider === 'CodeCraft' && (
+        <div className="codecraft-key-manager">
+          <div className="codecraft-banner">
+            <Sparkles size={18} className="codecraft-sparkle"/>
+            <div className="codecraft-copy">
+              <strong>1,000,000 Free Monthly Tokens • 33 Models Supported</strong>
+              <p>CodeCraft API provides an OpenAI-compatible API without credit card required. Fast drop-in replacement for Gemini.</p>
+            </div>
+            <button type="button" className="codecraft-signup-btn" onClick={() => (api?.open_external_url ? api.open_external_url('https://codecraftapi.com/register') : window.open('https://codecraftapi.com/register', '_blank'))}>
+              <ExternalLink size={13}/> Get Free Key
+            </button>
+          </div>
+          <div className="ai-fields codecraft-grid">
+            <label>
+              CodeCraft API Key
+              <input
+                type="password"
+                placeholder={draft.hasCodecraftApiKey ? 'Key saved securely •••••••• (paste to update)' : 'Paste CodeCraft key (starts with cc_)'}
+                value={draft.codecraftApiKey || ''}
+                onChange={event => set('codecraftApiKey', event.target.value)}
+              />
+            </label>
+            <label>
+              CodeCraft Model
+              <select value={draft.codecraftModel || 'claude-opus-4.8'} onChange={event => set('codecraftModel', event.target.value)}>
+                <option value={draft.codecraftModel || 'claude-opus-4.8'}>{draft.codecraftModel || 'claude-opus-4.8'}</option>
+                {models.filter(value => value !== (draft.codecraftModel || 'claude-opus-4.8')).map(value => (
+                  <option key={value} value={value}>{value}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <p className="hint">Encrypted with Windows DPAPI. Access 33 top models (Claude 3.5/Opus, GPT-4o, DeepSeek, Gemini).</p>
+        </div>
+      )}
       {draft.aiProvider === 'Custom' && <div className="ai-fields"><label>API base URL<input value={draft.customApiBase} placeholder="https://api.openai.com/v1" onChange={event => set('customApiBase', event.target.value)}/></label><label>API key (optional for local APIs)<input type="password" placeholder={draft.hasCustomApiKey ? 'Key saved securely ••••••••' : 'Paste API key if required'} onChange={event => set('customApiKey', event.target.value)}/></label><label>Model<select value={draft.customApiModel} onChange={event => set('customApiModel', event.target.value)}><option value={draft.customApiModel}>{draft.customApiModel || 'Load available models'}</option>{models.filter(value => value !== draft.customApiModel).map(value => <option key={value}>{value}</option>)}</select></label></div>}
       {draft.aiProvider === 'Gemini' && <div className="gemini-key-manager"><div className="gemini-key-add"><label>Add Gemini API key ({geminiKeys.length}/10)<input type="password" value={newGeminiKey} placeholder="Paste a key from another Google account" onChange={event => setNewGeminiKey(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') addGeminiKey() }}/></label><Button icon={Plus} variant="primary" onClick={addGeminiKey} disabled={!newGeminiKey.trim() || geminiKeys.length >= 10}>Add key</Button></div><div className="gemini-key-list">{geminiKeys.map(item => <div key={item.id}><KeyRound/><span><strong>{item.label}</strong><small>{item.masked}</small></span><IconButton title="Remove key" className="danger-text" onClick={() => removeGeminiKey(item.id)}><Trash2/></IconButton></div>)}</div><label>Gemini model<select value={draft.geminiModel} onChange={event => set('geminiModel', event.target.value)}><option value={draft.geminiModel}>{draft.geminiModel}</option>{models.filter(value => value !== draft.geminiModel).map(value => <option key={value}>{value}</option>)}</select></label><p className="hint">Keys are encrypted for this Windows account. Quota and authentication failures rotate keys; temporary model overload automatically falls back to a compatible Gemini Flash model.</p></div>}
       {draft.aiProvider === 'Florence-2' && <div className="local-ai-panel"><MonitorUp/><div><strong>Private thumbnail understanding</strong><p>{localAiStatus}</p><small>The quantized model is cached on first use. Florence-2 creates thumbnail prompts locally; chat and whole-video requests fall back to Gemini or Custom API.</small></div></div>}
@@ -591,63 +683,114 @@ function AiPage({ messages, input, setInput, video, setVideo, send, useCurrent, 
 
 function AboutPage({ boot, api }) {
   const t = useContext(I18nContext)
-  const openGithub = () => {
+  const openUrl = (url) => {
     if (api?.open_external_url) {
-      api.open_external_url('https://github.com/Chuobpiseth/cps-universal-downlaoder')
+      api.open_external_url(url)
     } else {
-      window.open('https://github.com/Chuobpiseth/cps-universal-downlaoder', '_blank')
+      window.open(url, '_blank')
     }
   }
 
   return <>
     <PageHeader title="About" subtitle="Free, open source, and privacy-focused media workspace"/>
-    <Card className="about-card">
-      <div className="logo-mark large"><Download size={52}/></div>
-      <h1>CPS Universal Downloader Premium</h1>
-      <span className="version-pill">Version {boot.version}</span>
-      <p>A fast, private, portable workspace to download media, convert files, create subtitles, and understand video with AI.</p>
-      
-      <div className="about-features">
-        <span><ShieldCheck/> 100% Free & Open Source</span>
-        <span><RotateCcw/> Media Converter</span>
-        <span><Zap/> High-Speed Downloads</span>
-        <span><BrainCircuit/> Embedded AI Skills</span>
-      </div>
-
-      <div className="about-card-section github-section">
-        <h2>Open Source Project</h2>
-        <p>
-          This app is 100% free for everyone and open source. You can view the full source code, check for new releases, report issues, and contribute on GitHub.
-        </p>
-        <div className="button-row center">
-          <Button icon={ExternalLink} variant="primary" onClick={openGithub}>
-            Get Source Code on GitHub · Chuobpiseth/cps-universal-downlaoder
-          </Button>
+    <div className="about-pro-layout">
+      <Card className="about-hero-card">
+        <div className="about-hero-badge">
+          <ShieldCheck size={14}/>
+          <span>100% Free & Open Source • MIT License</span>
         </div>
-      </div>
-
-      <div className="about-card-section donation-section">
-        <div className="coffee-title">
-          <Coffee size={24} className="coffee-icon"/>
-          <h2>Support Our Hard Work · Buy Me a Coffee</h2>
-        </div>
-        <p>
-          CPS Universal Downloader is free for all people. If you find this software helpful and would like to support our time, dedication, and ongoing development, you can donate for a coffee via <strong>ABA KHQR</strong>:
-        </p>
-        <div className="qr-container">
-          <div className="qr-box">
-            <img src="./assets/aba.png" alt="Donate via ABA KHQR" className="aba-qr-img" onError={e => { e.currentTarget.style.display = 'none' }}/>
-            <div className="qr-meta">
-              <span className="khqr-tag">ABA KHQR</span>
-              <small>Scan with ABA Mobile or any banking app</small>
+        <div className="about-brand-header">
+          <div className="logo-mark pro-glow"><Download size={44}/></div>
+          <div className="about-brand-titles">
+            <h1>CPS Universal Downloader Premium</h1>
+            <div className="about-version-row">
+              <span className="version-tag">Version {boot.version}</span>
+              <span className="status-indicator-tag"><span className="online-dot"/> Active Engine</span>
+              <span className="portable-tag">Portable Edition</span>
             </div>
           </div>
         </div>
+        <p className="about-lead">
+          A lightning-fast, privacy-first desktop workspace to download media from YouTube, TikTok, Facebook, Douyin, SharePoint, and 1,000+ platforms. Features native FFmpeg media conversion, multi-provider AI assistance (Google Gemini & CodeCraft API), and zero tracking.
+        </p>
+
+        <div className="pro-feature-cards">
+          <div className="pro-feature-item">
+            <div className="feature-icon-bubble cyan"><Zap size={20}/></div>
+            <strong>Turbo Concurrent Engine</strong>
+            <p>Resumable multi-threaded fragments, 64K buffer, and intelligent quality fallback.</p>
+          </div>
+          <div className="pro-feature-item">
+            <div className="feature-icon-bubble purple"><RotateCcw size={20}/></div>
+            <strong>Native Media Converter</strong>
+            <p>Lossless FFmpeg conversion for MP4, MKV, MP3, WAV, FLAC, HEIC, and GIFs.</p>
+          </div>
+          <div className="pro-feature-item">
+            <div className="feature-icon-bubble orange"><BrainCircuit size={20}/></div>
+            <strong>Dual AI Intelligence</strong>
+            <p>1M free tokens/mo with CodeCraft API, Google Gemini, and offline Florence-2 vision.</p>
+          </div>
+          <div className="pro-feature-item">
+            <div className="feature-icon-bubble green"><ShieldCheck size={20}/></div>
+            <strong>Private & Secure</strong>
+            <p>Zero telemetry. All keys encrypted with Windows DPAPI. Runs completely offline.</p>
+          </div>
+        </div>
+      </Card>
+
+      <div className="about-two-columns">
+        <Card className="pro-github-card">
+          <div className="github-card-header">
+            <GitHubIcon size={34} className="github-logo-svg"/>
+            <div>
+              <h2>GitHub Open Source Project</h2>
+              <span className="repo-slug">Chuobpiseth/cps-universal-downlaoder</span>
+            </div>
+          </div>
+          <p className="github-card-description">
+            This project is open-source under the MIT license. You can inspect the complete source code, download portable builds, submit feature suggestions, or contribute improvements.
+          </p>
+          <div className="github-action-buttons">
+            <Button icon={ExternalLink} variant="primary" onClick={() => openUrl('https://github.com/Chuobpiseth/cps-universal-downlaoder')}>
+              <GitHubIcon size={16}/> View Repository
+            </Button>
+            <Button icon={ExternalLink} onClick={() => openUrl('https://github.com/Chuobpiseth/cps-universal-downlaoder/releases')}>
+              Releases & Notes
+            </Button>
+          </div>
+        </Card>
+
+        <Card className="pro-donation-card">
+          <div className="donation-card-header">
+            <div className="coffee-bubble"><Coffee size={24}/></div>
+            <div>
+              <h2>Support Our Work • Buy Me a Coffee</h2>
+              <p className="donation-subtitle">100% Free Software • Community Supported</p>
+            </div>
+          </div>
+          <p className="donation-text">
+            CPS Universal Downloader is free for everyone. If it saves you time and effort, you can support our ongoing development and buy me a coffee via <strong>ABA KHQR</strong>:
+          </p>
+          <div className="khqr-card-wrapper">
+            <div className="khqr-paper">
+              <div className="khqr-top-bar">
+                <span className="khqr-pill">KHQR</span>
+                <strong>Chuob Piseth</strong>
+              </div>
+              <img src="./assets/aba.png" alt="Donate via ABA KHQR" className="khqr-image" onError={e => { e.currentTarget.style.display = 'none' }}/>
+              <div className="khqr-footer-bar">
+                <span>Scan with ABA Mobile, Bakong, or any bank app</span>
+              </div>
+            </div>
+          </div>
+        </Card>
       </div>
 
-      <strong className="made-by">© 2026 CPS Universal Downloader Premium · {t('Made by Chuob Piseth')}</strong>
-      <small className="about-disclaimer">Download and convert only content that you own or have permission to use.</small>
-    </Card>
+      <div className="about-footer-legal">
+        <strong className="made-by-text">© 2026 CPS Universal Downloader Premium • {t('Made by Chuob Piseth')}</strong>
+        <p className="disclaimer-text">Download and convert only content that you own or have permission to use.</p>
+      </div>
+    </div>
   </>
 }
 

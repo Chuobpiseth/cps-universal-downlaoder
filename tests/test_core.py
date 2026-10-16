@@ -3,6 +3,7 @@ import io
 import json
 import os
 import sys
+import tempfile
 import threading
 import urllib.error
 import urllib.request
@@ -365,6 +366,41 @@ class CoreTests(unittest.TestCase):
         self.assertTrue(captured[0][1]["smartVertical"])
         self.assertEqual("Important idea", captured[0][1]["hookCaption"])
 
+    def test_check_app_update_handles_404_cleanly(self):
+        api = backend.DesktopApi.__new__(backend.DesktopApi)
+        api._update_state = {}
+        api._lock = threading.RLock()
+        api._set_update_state = backend.DesktopApi._set_update_state.__get__(api, backend.DesktopApi)
+        api._log_activity = lambda *args: None
+
+        def fake_urlopen(*args, **kwargs):
+            raise urllib.error.HTTPError("https://api.github.com/...", 404, "Not Found", {}, None)
+
+        with mock.patch("urllib.request.urlopen", side_effect=fake_urlopen):
+            state = api.check_app_update(manual=True)
+            self.assertEqual("current", state["status"])
+            self.assertIn("up to date", state["message"])
+            self.assertFalse(state["available"])
+
+    def test_download_thumbnail_saves_image(self):
+        api = backend.DesktopApi.__new__(backend.DesktopApi)
+        api._log_activity = lambda *args: None
+        with tempfile.TemporaryDirectory() as temp_dir:
+            api.settings = {"saveLocation": temp_dir}
+
+            class FakeResponse:
+                def __enter__(self): return self
+                def __exit__(self, *args): return False
+                headers = mock.Mock(get_content_type=lambda: "image/jpeg")
+                def read(self, *args): return b"\xff\xd8\xff\xe0fake_jpeg_content"
+
+            with mock.patch("urllib.request.urlopen", return_value=FakeResponse()):
+                result = api.download_thumbnail("https://example.com/thumb.jpg", "Test Video Title")
+                self.assertTrue(result["saved"])
+                self.assertTrue(Path(result["path"]).exists())
+                self.assertEqual(b"\xff\xd8\xff\xe0fake_jpeg_content", Path(result["path"]).read_bytes())
+
 
 if __name__ == "__main__":
     unittest.main()
+
