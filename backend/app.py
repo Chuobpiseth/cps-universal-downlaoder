@@ -72,6 +72,9 @@ def migrate_legacy_data() -> None:
             "workflow-recipes.json",
             "gemini-key.bin",
             "codecraft-key.bin",
+            "groq-key.bin",
+            "openrouter-key.bin",
+            "inception-key.bin",
             "custom-ai-key.bin",
             "download-archive.txt",
         ):
