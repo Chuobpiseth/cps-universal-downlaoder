@@ -140,8 +140,12 @@ def tool_path(name: str) -> Path:
 
 
 def frontend_path() -> Path:
-    candidates = [BUNDLE_ROOT / "frontend", SOURCE_ROOT / "frontend" / "dist"]
-    return next((path for path in candidates if (path / "index.html").exists()), candidates[0])
+    if getattr(sys, "frozen", False):
+        return BUNDLE_ROOT / "frontend"
+    dist = SOURCE_ROOT / "frontend" / "dist"
+    if (dist / "index.html").exists():
+        return dist
+    return SOURCE_ROOT / "frontend"
 
 
 def child_process_environment() -> dict[str, str]:

@@ -39,7 +39,6 @@ $tools = Join-Path $parent 'tools'
     --name 'CPSUniversalDownloaderReact' `
     --icon $icon `
     --version-file $versionInfo `
-    --runtime-tmpdir '.cps-runtime' `
     --distpath $dist `
     --workpath (Join-Path $project 'build-temp') `
     --specpath (Join-Path $project 'build-temp') `
