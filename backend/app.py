@@ -548,7 +548,7 @@ class DesktopApi:
         settings["hasOpenrouterApiKey"] = self._openrouter_key_file.exists()
         settings["hasInceptionApiKey"] = self._inception_key_file.exists()
         settings["hasCustomApiKey"] = self._custom_key_file.exists()
-        return {"name": APP_NAME, "version": APP_VERSION, "settings": settings, "queue": self.queue, "history": self.history, "activity": self.activity, "recipes": self.list_workflow_recipes(), "conversions": self.conversions, "updateStatus": dict(self._update_state), "toolsReady": all(tool_path(name).exists() for name in ("yt-dlp.exe", "ffmpeg.exe", "ffprobe.exe", "deno.exe")), "extensionReady": self._extension.ready}
+        return {"name": APP_NAME, "version": APP_VERSION, "settings": settings, "queue": self.queue, "history": self.history, "activity": self.activity, "recipes": self.list_workflow_recipes(), "conversions": self.conversions, "updateStatus": dict(self._update_state), "toolsReady": all(tool_path(name).exists() for name in ("yt-dlp.exe", "ffmpeg.exe", "deno.exe")), "extensionReady": self._extension.ready}
 
     def get_state(self) -> dict[str, Any]:
         with self._lock:
@@ -911,11 +911,11 @@ class DesktopApi:
         if start_time or end_time:
             args += ["--download-sections", f"*{start_time or '0'}-{end_time or 'inf'}", "--force-keyframes-at-cuts"]
         args.append(item["url"])
-        self._set_item(item, status="Downloading", error="", recovery=None)
-        self._log_activity("info", "download", f"Downloading to {output}", item)
         process: subprocess.Popen[str] | None = None
         diagnostic_lines: list[str] = []
         try:
+            self._set_item(item, status="Downloading", error="", recovery=None)
+            self._log_activity("info", "download", f"Downloading to {output_dir}", item)
             process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace", bufsize=1, creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0, env=child_process_environment())
             with self._lock:
                 self._processes[item["id"]] = process
@@ -1221,16 +1221,29 @@ class DesktopApi:
         return {"started": True, "count": len(items), "ids": [item["id"] for item in items]}
 
     def _conversion_duration(self, source: str) -> float:
+        probe = tool_path("ffprobe.exe")
+        if probe.exists():
+            result = subprocess.run(
+                [str(probe), "-v", "error", "-show_entries", "format=duration", "-of", "default=nw=1:nk=1", source],
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
+                creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+                env=child_process_environment(),
+            )
+            try:
+                return max(0.0, float((result.stdout or "").strip()))
+            except ValueError:
+                pass
         result = subprocess.run(
-            [str(tool_path("ffprobe.exe")), "-v", "error", "-show_entries", "format=duration", "-of", "default=nw=1:nk=1", source],
+            [str(tool_path("ffmpeg.exe")), "-hide_banner", "-i", source],
             capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
             creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
             env=child_process_environment(),
         )
-        try:
-            return max(0.0, float(result.stdout.strip()))
-        except ValueError:
-            return 0.0
+        match = re.search(r"Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)", result.stderr or "")
+        if match:
+            hours, minutes, seconds = match.groups()
+            return int(hours) * 3600 + int(minutes) * 60 + float(seconds)
+        return 0.0
 
     def _run_conversion(self, item: dict[str, Any]) -> None:
         duration_seconds = self._conversion_duration(item["sourcePath"])

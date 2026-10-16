@@ -18,8 +18,8 @@ OutputDir=..\release
 OutputBaseFilename=CPS-Universal-Downloader-v{#MyAppVersion}-Setup
 SetupIconFile=..\assets\app_icon.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
-Compression=lzma2/max
-SolidCompression=yes
+Compression=lzma2/fast
+SolidCompression=no
 WizardStyle=modern
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
@@ -39,7 +39,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"; Flags: unchecked
 
 [Files]
-Source: "..\build-v{#MyAppVersion}\CPSUniversalDownloader.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\build-v{#MyAppVersion}\onedir\CPSUniversalDownloader\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\CPS Universal Downloader Premium"; Filename: "{app}\{#MyAppExeName}"

@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 $project = $PSScriptRoot
 $source = Join-Path $project 'installer\CPSUniversalDownloader.iss'
-$portable = Join-Path $project 'build-v1.2.5\CPSUniversalDownloader.exe'
+$onedirApp = Join-Path $project 'build-v1.2.5\onedir\CPSUniversalDownloader\CPSUniversalDownloader.exe'
 $compilerCandidates = @(
     (Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'),
     (Join-Path $env:ProgramFiles 'Inno Setup 6\ISCC.exe'),
@@ -9,8 +9,8 @@ $compilerCandidates = @(
 )
 $compiler = $compilerCandidates | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -First 1
 
-if (-not (Test-Path -LiteralPath $portable)) {
-    throw "Build the standalone EXE first: $portable"
+if (-not (Test-Path -LiteralPath $onedirApp)) {
+    throw "Build the onedir application first using build-portable.ps1: $onedirApp"
 }
 if (-not $compiler) {
     throw 'Inno Setup 6 was not found. Install JRSoftware.InnoSetup with winget, then run this script again.'

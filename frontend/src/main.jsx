@@ -26,26 +26,26 @@ const errorText = error => error?.message || String(error || 'Something went wro
 const I18nContext = createContext(value => value)
 const khmer = {
   // Navigation & Core Pages
-  Home: 'ទំព័រដើម', 'AI assistant': 'ជំនួយការ AI', AI: 'ជំនួយការ AI', Downloads: 'ការទាញយក', Queue: 'ជួររង់ចាំ', 'Download queue': 'ជួររង់ចាំទាញយក', History: 'ប្រវត្តិ', 'History & activity': 'ប្រវត្តិ & សកម្មភាព', Convert: 'បម្លែង', 'Media converter': 'កម្មវិធីបម្លែងមេឌៀ', Studio: 'ស្ទូឌីយោ', 'Creator studio': 'ស្ទូឌីយោអ្នកបង្កើត', Settings: 'ការកំណត់', About: 'អំពីកម្មវិធី',
-  'Fast • private • portable': 'លឿន • ឯកជន • ចល័ត', 'More than downloads.': 'លើសពីការទាញយកវីដេអូ,', 'Create without limits.': 'ប្រើប្រាស់ដោយគ្មានដែនកំណត់',
+  Home: 'ទំព័រដើម', 'AI assistant': 'ជំនួយការ AI', AI: 'ជំនួយការ AI', Downloads: 'ការទាញយក', Queue: 'ជួររង់ចាំ', 'Download queue': 'ដំណើរការទាញយក', History: 'ប្រវត្តិ', 'History & activity': 'ប្រវត្តិ & សកម្មភាព', Convert: 'បម្លែង', 'Media converter': 'កម្មវិធីបម្លែងមេឌៀ', Studio: 'ស្ទូឌីយោ', 'Creator studio': 'ស្ទូឌីយោអ្នកបង្កើត', Settings: 'ការកំណត់', About: 'អំពីកម្មវិធី',
+  'Fast • private • portable': 'លឿន • ឯកជន • ចល័ត', 'More than downloads.': 'លើសពីការទាញយកវីដេអូធម្មតា,', 'Create without limits.': 'ប្រើប្រាស់ដោយគ្មានដែនកំណត់',
   'Download, convert, and understand video with AI—all in one private creative workspace.': 'ទាញយក បម្លែង និងស្វែងយល់វីដេអូជាមួយ AI ក្នុងកន្លែងការងារឯកជនតែមួយ។',
   'Private local workflow': 'ដំណើរការឯកជនក្នុងម៉ាស៊ីន', 'Made by Chuob Piseth': 'បង្កើតដោយ Chuob Piseth', 'Starting CPS Universal Downloader…': 'កំពុងចាប់ផ្ដើម CPS Universal Downloader…',
 
   // Hero & Search
-  'Paste a link to get started': 'បិទភ្ជាប់តំណដើម្បីចាប់ផ្ដើម', 'Paste video URL, playlist, or multiple links here (YouTube, TikTok, Facebook…)': 'បិទភ្ជាប់តំណវីដេអូ បញ្ជីចាក់ ឬតំណច្រើននៅទីនេះ (YouTube, TikTok, Facebook…)',
-  'One URL, a playlist, or multiple links.': 'តំណមួយ បញ្ជីចាក់ ឬតំណច្រើន។', Paste: 'បិទភ្ជាប់', Analyze: 'វិភាគ', 'Analyze only': 'វិភាគតែប៉ុណ្ណោះ', Analyzing: 'កំពុងវិភាគ', 'Analyzing…': 'កំពុងវិភាគ…',
-  'Analyzing link and loading available videos…': 'កំពុងវិភាគតំណ និងផ្ទុកវីដេអូដែលមាន…', 'Clear link': 'សម្អាតតំណ', Ready: 'រួចរាល់', 'SharePoint + 1,000 sites': 'SharePoint + គេហទំព័រ ១០០០+',
-  'Link pasted from clipboard': 'បានបិទភ្ជាប់តំណពីក្ដារតម្បៀតខ្ទាស់', 'Clipboard is empty. Copy a link first (Ctrl+C)': 'ក្ដារតម្បៀតខ្ទាស់ទទេ សូមចម្លងតំណជាមុន (Ctrl+C)', 'Press Ctrl+V to paste the link': 'សូមចុច Ctrl+V ដើម្បីបិទភ្ជាប់តំណ',
+  'Paste a link to get started': 'បិទភ្ជាប់តំណដើម្បីចាប់ផ្តើមការទាញយក', 'Paste video URL, playlist, or multiple links here (YouTube, TikTok, Facebook…)': 'បិទភ្ជាប់តំណវីដេអូ បញ្ជីវីដេអូ ឬតំណច្រើននៅទីនេះ...',
+  'One URL, a playlist, or multiple links.': 'តំណមួយ បញ្ជីចាក់ ឬតំណច្រើន។', Paste: 'បិទភ្ជាប់', Analyze: 'វិភាគ', 'Analyze only': 'វិភាគតែសុទ្ធ', Analyzing: 'កំពុងវិភាគ', 'Analyzing…': 'កំពុងវិភាគ…',
+  'Analyzing link and loading available videos…': 'កំពុងវិភាគតំណ និងចាប់យកវីដេអូដែលមាន…', 'Clear link': 'សម្អាតតំណ', Ready: 'រួចរាល់', 'SharePoint + 1,000 sites': 'SharePoint + គេហទំព័រ ១០០០+',
+  'Link pasted from clipboard': 'បានបិទភ្ជាប់តំណពី clipboard', 'Clipboard is empty. Copy a link first (Ctrl+C)': 'clipboard ទទេ សូមចម្លងតំណជាមុន (Ctrl+C)', 'Press Ctrl+V to paste the link': 'សូមចុច Ctrl+V ដើម្បីបិទភ្ជាប់តំណ',
 
   // Controls & Presets
-  'Download settings': 'ការកំណត់ទាញយក', Type: 'ប្រភេទ', Video: 'វីដេអូ', Audio: 'សំឡេង', Quality: 'គុណភាព', Format: 'ទម្រង់', 'Clip start': 'ចាប់ផ្ដើមកាត់', 'Clip end': 'បញ្ចប់កាត់', 'Full video': 'វីដេអូពេញ',
+  'Download settings': 'កំណត់ការទាញយក', Type: 'ប្រភេទ', Video: 'វីដេអូ', Audio: 'សំឡេង', Quality: 'គុណភាព', Format: 'ទម្រង់', 'Clip start': 'ចាប់ផ្ដើមកាត់', 'Clip end': 'បញ្ចប់កាត់', 'Full video': 'វីដេអូពេញ',
   'Quick presets': 'ការកំណត់រហ័ស', 'Download now': 'ទាញយកឥឡូវ', Download: 'ទាញយក', Working: 'កំពុងដំណើរការ', 'Working…': 'កំពុងដំណើរការ…', Best: 'ល្អបំផុត', Small: 'ទំហំតូច', 'Saving to': 'រក្សាទុកទៅ', Change: 'ប្ដូរថត', 'Change folder': 'ប្ដូរថត', 'Change destination folder': 'ប្ដូរថតគោលដៅ', 'Open folder': 'បើកថត', 'Open download folder': 'បើកថតទាញយក',
   'Analyze only previews media. Downloads start only after you select videos and click this button.': 'ការវិភាគគ្រាន់តែបង្ហាញទិដ្ឋភាពជាមុនប៉ុណ្ណោះ។ ការទាញយកនឹងចាប់ផ្ដើមលុះត្រាតែអ្នកជ្រើសរើសវីដេអូ ហើយចុចប៊ូតុងនេះ។',
 
   // Format Inspector
-  'Format inspector': 'ឧបករណ៍ពិនិត្យទម្រង់មេឌៀ', 'Choose an exact media stream below or keep automatic Best quality.': 'ជ្រើសរើសខ្សែទិន្នន័យជាក់លាក់ខាងក្រោម ឬរក្សាទុកគុណភាពល្អបំផុតដោយស្វ័យប្រវត្តិ។',
+  'Format inspector': 'ពិនិត្យទម្រង់មេឌៀ', 'Choose an exact media stream below or keep automatic Best quality.': 'ជ្រើសរើសខ្សែទិន្នន័យជាក់លាក់ខាងក្រោម ឬរក្សាទុកគុណភាពល្អបំផុតដោយស្វ័យប្រវត្តិ។',
   '✓ Automatic Best (Active)': '✓ គុណភាពល្អបំផុតស្វ័យប្រវត្តិ (សកម្ម)', 'Reset to Automatic Best': 'កំណត់ទៅគុណភាពល្អបំផុតស្វ័យប្រវត្តិ',
-  'All Streams': 'ខ្សែទិន្នន័យទាំងអស់', 'Video + Audio': 'វីដេអូ + សំឡេង', 'Video Only': 'វីដេអូតែប៉ុណ្ណោះ', 'Audio Only': 'សំឡេងតែប៉ុណ្ណោះ', Select: 'ជ្រើសរើស', Selected: 'បានជ្រើស', Active: 'សកម្ម',
+  'All Streams': 'ទិន្នន័យទាំងអស់', 'Video + Audio': 'វីដេអូ + សំឡេង', 'Video Only': 'វីដេអូសុទ្ធអត់សម្លេង', 'Audio Only': 'សំឡេងសុទ្ធ', Select: 'ជ្រើសរើស', Selected: 'បានជ្រើស', Active: 'សកម្ម',
   'Direct stream format selected': 'បានជ្រើសរើសទម្រង់ខ្សែទិន្នន័យដោយផ្ទាល់', 'Download this format': 'ទាញយកទម្រង់នេះ', 'Direct download': 'ទាញយកផ្ទាល់',
 
   // Media Card & Actions
@@ -88,21 +88,21 @@ const khmer = {
 
   // About Page
   'Free, open source, and privacy-focused media workspace': 'កន្លែងការងារមេឌៀឥតគិតថ្លៃ ប្រភពបើកចំហ និងផ្តោតលើភាពឯកជន',
-  '100% Free & Open Source • MIT License': 'ឥតគិតថ្លៃ ១០០% & កូដចំហ • អាជ្ញាប័ណ្ណ MIT',
-  Version: 'កំណែ', 'Active Engine': 'ម៉ាស៊ីនដំណើរការ', 'Portable Edition': 'កំណែចល័ត',
-  'A lightning-fast, privacy-first desktop workspace to download media from YouTube, TikTok, Facebook, Douyin, SharePoint, and 1,000+ platforms. Features native FFmpeg media conversion, multi-provider AI assistance (Groq Cloud, OpenRouter, CodeCraft, Inception Labs, Google Gemini), and zero tracking.': 'កន្លែងការងារលើកុំព្យូទ័រដែលមានល្បឿនលឿន និងរក្សាការសម្ងាត់ខ្ពស់ សម្រាប់ទាញយកមេឌៀពី YouTube, TikTok, Facebook, Douyin, SharePoint និងគេហទំព័រជាង ១០០០+ ផ្សេងទៀត។ មានភ្ជាប់មកជាមួយនូវម៉ាស៊ីនបម្លែង FFmpeg, ជំនួយការ AI ច្រើនប្រភព (Groq Cloud, OpenRouter, CodeCraft, Inception Labs, Google Gemini) និងគ្មានការតាមដានទិន្នន័យឡើយ។',
-  'Turbo Concurrent Engine': 'ម៉ាស៊ីនទាញយកល្បឿនលឿន Turbo',
-  'Resumable multi-threaded fragments, 64K buffer, and intelligent quality fallback.': 'ទាញយកជាផ្នែកស្របគ្នា អាចបន្តការទាញយកឡើងវិញ បណ្ដុំទិន្នន័យ 64K និងប្ដូរគុណភាពវៃឆ្លាតស្វ័យប្រវត្តិ។',
-  'Native Media Converter': 'កម្មវិធីបម្លែងមេឌៀផ្ទាល់ក្នុងម៉ាស៊ីន',
-  'Lossless FFmpeg conversion for MP4, MKV, MP3, WAV, FLAC, HEIC, and GIFs.': 'បម្លែងឯកសារមិនបាត់បង់គុណភាពជាមួយ FFmpeg សម្រាប់ MP4, MKV, MP3, WAV, FLAC, HEIC និង GIF។',
-  'Multi-Provider AI Intelligence': 'បញ្ញាសិប្បនិម្មិត AI ច្រើនប្រភព',
+  '100% Free & Open Source • MIT License': '100% ឥតគិតថ្លៃ & កូដចំហ (Open Source) • អាជ្ញាប័ណ្ណ MIT',
+  Version: 'កំណែ', 'Active Engine': 'Engine កំពុងដំណើរការ', 'Portable Edition': 'ជំនាន់ Portable (មិនបាច់ដំឡើង)',
+  'A lightning-fast, privacy-first desktop workspace to download media from YouTube, TikTok, Facebook, Douyin, SharePoint, and 1,000+ platforms. Features native FFmpeg media conversion, multi-provider AI assistance (Groq Cloud, OpenRouter, CodeCraft, Inception Labs, Google Gemini), and zero tracking.': 'កម្មវិធីកុំព្យូទ័រល្បឿនលឿន និងសុវត្ថិភាពខ្ពស់ សម្រាប់ទាញយកវីដេអូពី YouTube, TikTok, Facebook, Douyin, SharePoint និងគេហទំព័រជាង ១០០០+ ផ្សេងទៀត។ មានភ្ជាប់មកជាមួយនូវម៉ាស៊ីនបម្លែង FFmpeg, ជំនួយការ AI ច្រើនប្រភព (Groq Cloud, OpenRouter, CodeCraft, Inception Labs, Google Gemini) និងគ្មានការតាមដានទិន្នន័យឡើយ។',
+  'Turbo Concurrent Engine': 'ប្រព័ន្ធទាញយកល្បឿនលឿន Turbo',
+  'Resumable multi-threaded fragments, 64K buffer, and intelligent quality fallback.': 'ទាញយកល្បឿនលឿនជាច្រើនផ្នែក អាចបន្តទាញយកឡើងវិញ ជាមួយ buffer 64K និងជម្រើសគុណភាពស្វ័យប្រវត្តិ។',
+  'Native Media Converter': 'មុខងារបម្លែងវីដេអូក្នុងម៉ាស៊ីន (Converter)',
+  'Lossless FFmpeg conversion for MP4, MKV, MP3, WAV, FLAC, HEIC, and GIFs.': 'បម្លែងឯកសារដោយរក្សាគុណភាពដើមជាមួយ FFmpeg សម្រាប់ MP4, MKV, MP3, WAV, FLAC, HEIC និង GIF។',
+  'Multi-Provider AI Intelligence': 'ជំនួយការ AI ចម្រុះប្រភព',
   'Groq (7K free/d), OpenRouter (Free Vision), Inception Labs (Mercury dLLM), CodeCraft (1M/mo), and Google Gemini.': 'Groq (៧០០០ សំណើឥតគិតថ្លៃ/ថ្ងៃ), OpenRouter (Vision ឥតគិតថ្លៃ), Inception Labs (Mercury dLLM), CodeCraft (១លាន token/ខែ) និង Google Gemini។',
-  'Private & Secure': 'ឯកជនភាព និងសុវត្ថិភាពខ្ពស់',
-  'Zero telemetry. All keys encrypted with Windows DPAPI. Runs completely offline.': 'គ្មានការប្រមូលទិន្នន័យឡើយ។ កូដសម្ងាត់ទាំងអស់ត្រូវបានអ៊ិនគ្រីបដោយ Windows DPAPI។ ដំណើរការដោយសុវត្ថិភាព។',
+  'Private & Secure': 'ឯកជនភាព និងសុវត្ថិភាព',
+  'Zero telemetry. All keys encrypted with Windows DPAPI. Runs completely offline.': 'គ្មានការលួចប្រមូលទិន្នន័យ។ API keys ទាំងអស់ត្រូវបានការពារដោយ Windows DPAPI។ ដំណើរការដោយសុវត្ថិភាពខ្ពស់។',
   'GitHub Open Source Project': 'គម្រោងកូដចំហលើ GitHub',
   'This project is open-source under the MIT license. You can inspect the complete source code, download portable builds, submit feature suggestions, or contribute improvements.': 'គម្រោងនេះជាកម្មវិធីកូដចំហក្រោមអាជ្ញាប័ណ្ណ MIT។ អ្នកអាចពិនិត្យមើលកូដប្រភពទាំងស្រុង ទាញយកកំណែចល័ត ផ្ដល់យោបល់ ឬចូលរួមអភិវឌ្ឍន៍បន្ថែម។',
   'View Repository': 'មើលកូដប្រភព Repository', 'Releases & Notes': 'កំណែចេញផ្សាយ & កំណត់ចំណាំ', Releases: 'កំណែចេញផ្សាយ',
-  'Support Our Work • Buy Me a Coffee': 'គាំទ្រការងាររបស់យើង • ឧបត្ថម្ភកាហ្វេមួយកែវ', '100% Free Software • Community Supported': 'សូហ្វវែរឥតគិតថ្លៃ ១០០% • គាំទ្រដោយសហគមន៍',
+  'Support Our Work • Buy Me a Coffee': 'គាំទ្រការអភិវឌ្ឍន៍ • ឧបត្ថម្ភកាហ្វេ', '100% Free Software • Community Supported': 'សូហ្វវែរឥតគិតថ្លៃ ១០០% • គាំទ្រដោយសហគមន៍',
   'CPS Universal Downloader is free for everyone. If it saves you time and effort, you can support our ongoing development and buy me a coffee via ABA KHQR:': 'CPS Universal Downloader គឺឥតគិតថ្លៃសម្រាប់មនុស្សគ្រប់គ្នា។ ប្រសិនបើកម្មវិធីនេះជួយសម្រួលការងារ និងពេលវេលារបស់អ្នក អ្នកអាចគាំទ្រការអភិវឌ្ឍន៍បន្តរបស់យើងដោយការឧបត្ថម្ភកាហ្វេតាមរយៈ ABA KHQR៖',
   'Scan with ABA Mobile, Bakong, or any bank app': 'ស្កេនជាមួយ ABA Mobile, បាគង (Bakong) ឬកម្មវិធីធនាគារណាមួយ',
   'Download and convert only content that you own or have permission to use.': 'សូមទាញយក និងបម្លែងតែមាតិកាដែលជាកម្មសិទ្ធិរបស់អ្នក ឬទទួលបានការអនុញ្ញាតប៉ុណ្ណោះ។',
@@ -310,22 +310,122 @@ function App() {
   const waitingIds = queue.filter(item => item.selected && item.status === 'Waiting').map(item => item.id)
   const active = queue.filter(item => !['Completed'].includes(item.status))
 
-  async function analyze() {
-    const urls = url.split(/\s+/).filter(value => /^https?:\/\//i.test(value))
-    if (!urls.length) return setStatus('Paste a valid video address first.')
+  async function catchPreviewAndAnalyze(target) {
+    const raw = typeof target === 'string' ? target : url
+    const urls = (raw || '').split(/\s+/).filter(value => /^https?:\/\//i.test(value))
+    if (!urls.length) return setStatus(t('Paste a link to get started'))
     setHomeAiResult(null)
+    const targetUrl = urls[0]
+
     if (urls.length > 1) {
-      const youtubeId = value => value.match(/(?:youtu\.be\/|[?&]v=|\/shorts\/|\/embed\/)([A-Za-z0-9_-]{6,})/)?.[1] || ''
-      const entries = urls.map((value, index) => { const id = youtubeId(value); return { url: value, title: id ? `YouTube video ${index + 1}` : value, platform: id ? 'YouTube' : new URL(value).hostname, thumbnail: id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : '', duration: null } })
-      setMedia({ url: urls[0], title: `${entries.length} pasted video links`, creator: '', platform: 'Multiple links', thumbnail: entries[0]?.thumbnail || '', duration: null, views: null, description: 'Review the list and choose only the videos you want. Analyze does not add anything to the queue or start a download.', entries, formats: [], subtitles: [], chapters: [] })
-      setAiVideo(urls[0]); setFormatId(''); setPlaylistSelection([]); setStatus(`${entries.length} links analyzed — nothing downloaded. Select videos manually.`)
+      const youtubeId = value => value.match(/(?:youtu\.be\/|[?&]v=|\/shorts\/|\/embed\/|\/live\/)([A-Za-z0-9_-]{11})/i)?.[1] || ''
+      const entries = urls.map((value, index) => {
+        const id = youtubeId(value)
+        return {
+          url: value,
+          title: id ? `YouTube video ${index + 1}` : value,
+          platform: id ? 'YouTube' : new URL(value).hostname,
+          thumbnail: id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : '',
+          duration: null
+        }
+      })
+      setMedia({
+        url: targetUrl,
+        title: `${entries.length} pasted video links`,
+        creator: '',
+        platform: 'Multiple links',
+        thumbnail: entries[0]?.thumbnail || '',
+        duration: null,
+        views: null,
+        description: 'Review the list and choose only the videos you want. Analyze does not add anything to the queue or start a download.',
+        entries,
+        formats: [],
+        subtitles: [],
+        chapters: []
+      })
+      setAiVideo(targetUrl)
+      setFormatId('')
+      setPlaylistSelection([])
+      setStatus(`${entries.length} links analyzed — nothing downloaded. Select videos manually.`)
       return
     }
+
+    // Step 1: INSTANT CATCH PREVIEW (< 50ms)
+    const ytMatch = targetUrl.match(/(?:youtu\.be\/|[?&]v=|\/shorts\/|\/embed\/|\/live\/)([A-Za-z0-9_-]{11})/i)
+    if (ytMatch) {
+      const ytId = ytMatch[1]
+      setMedia({
+        url: targetUrl,
+        title: `YouTube Video (${ytId})`,
+        creator: '',
+        platform: 'YouTube',
+        thumbnail: `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`,
+        duration: null,
+        views: null,
+        description: 'Inspecting media streams & available formats…',
+        entries: [],
+        formats: [],
+        subtitles: [],
+        chapters: [],
+        isProvisional: true,
+      })
+      setAiVideo(targetUrl)
+      setFormatId('')
+      setPlaylistSelection([])
+      // Instant title from YouTube public oEmbed
+      fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${ytId}&format=json`)
+        .then(res => res.json())
+        .then(data => {
+          if (data?.title) {
+            setMedia(curr => (curr && curr.url === targetUrl && curr.isProvisional)
+              ? { ...curr, title: data.title, creator: data.author_name || curr.creator }
+              : curr
+            )
+          }
+        })
+        .catch(() => {})
+    } else {
+      let hostname = ''
+      try { hostname = new URL(targetUrl).hostname.replace('www.', '') } catch {}
+      setMedia({
+        url: targetUrl,
+        title: `${hostname || 'Web'} Video`,
+        creator: '',
+        platform: hostname || 'Web Video',
+        thumbnail: '',
+        duration: null,
+        views: null,
+        description: 'Inspecting media streams & available formats…',
+        entries: [],
+        formats: [],
+        subtitles: [],
+        chapters: [],
+        isProvisional: true,
+      })
+      setAiVideo(targetUrl)
+      setFormatId('')
+      setPlaylistSelection([])
+    }
+
+    // Step 2: Full deep yt-dlp inspection
     try {
-      setBusy(true); setStatus('Analyzing link and loading available videos…')
-      const result = await api.analyze(urls[0]); setMedia(result); setAiVideo(result.url); setFormatId('')
-      setPlaylistSelection([]); setStatus(result.entries.length ? `${result.entries.length} videos found — nothing downloaded. Select videos manually.` : `Ready from ${result.platform} — nothing downloaded`)
-    } catch (error) { setStatus(errorText(error)) } finally { setBusy(false) }
+      setBusy(true)
+      setStatus(t('Analyzing link and loading available videos…'))
+      const result = await api.analyze(targetUrl)
+      setMedia(result)
+      setAiVideo(result.url)
+      setFormatId('')
+      setPlaylistSelection([])
+      setStatus(result.entries.length ? `${result.entries.length} videos found — nothing downloaded. Select videos manually.` : `Ready from ${result.platform} — nothing downloaded`)
+    } catch (error) {
+      setStatus(errorText(error))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function analyze() {
+    await catchPreviewAndAnalyze(url)
   }
 
   async function downloadNow(targetFormatId) {
@@ -356,6 +456,9 @@ function App() {
       if (text) {
         setUrl(text)
         setToast(t('Link pasted from clipboard'))
+        if (/^https?:\/\//i.test(text)) {
+          catchPreviewAndAnalyze(text)
+        }
       } else {
         setToast(t('Clipboard is empty. Copy a link first (Ctrl+C)'))
       }
@@ -578,6 +681,12 @@ function App() {
                       value={url}
                       onChange={event => setUrl(event.target.value)}
                       onKeyDown={event => { if (event.key === 'Enter') analyze() }}
+                      onPaste={event => {
+                        const pasted = event.clipboardData?.getData('text') || ''
+                        if (pasted.trim() && /^https?:\/\//i.test(pasted.trim())) {
+                          setTimeout(() => catchPreviewAndAnalyze(pasted.trim()), 20)
+                        }
+                      }}
                       placeholder={t('Paste video URL, playlist, or multiple links here (YouTube, TikTok, Facebook…)')}
                     />
                     {url && (
@@ -669,7 +778,7 @@ function App() {
                 </div>
               </Card>
 
-              {media?.formats?.length > 0 && (
+              {media?.formats?.length > 0 ? (
                 <FormatInspector
                   formats={media.formats}
                   formatId={formatId}
@@ -677,7 +786,12 @@ function App() {
                   onDownload={downloadNow}
                   t={t}
                 />
-              )}
+              ) : busy ? (
+                <Card className="format-inspector-card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '14px', justifyContent: 'center' }}>
+                  <LoaderCircle className="spin" size={20} />
+                  <span style={{ fontSize: '14px', fontWeight: 600 }}>{t('Analyzing link and loading available videos…')}</span>
+                </Card>
+              ) : null}
 
               {homeAiResult && (
                 <Card className="home-ai-result">

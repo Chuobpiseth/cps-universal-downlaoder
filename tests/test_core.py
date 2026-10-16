@@ -438,6 +438,40 @@ class CoreTests(unittest.TestCase):
                 if api.set_clipboard_text(test_str):
                     self.assertEqual(test_str, api.read_clipboard_text())
 
+    def test_download_one_executes_without_name_error(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with mock.patch.object(backend, "DATA_DIR", Path(temp_dir)):
+                api = backend.DesktopApi()
+                item = {
+                    "id": "item-123",
+                    "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                    "title": "Rick Astley",
+                    "status": "Waiting",
+                    "saveLocation": temp_dir,
+                }
+                api.queue = [item]
+
+                class MockProcess:
+                    stdout = ["meta:title: Rick Astley", "download:download: 100%|1.0MiB/s|00:00"]
+                    def poll(self): return 0
+                    def wait(self): return 0
+
+                with mock.patch("subprocess.Popen", return_value=MockProcess()):
+                    api._download_one(item)
+                    self.assertEqual("Completed", item.get("status"))
+
+    def test_conversion_duration_ffmpeg_fallback(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with mock.patch.object(backend, "DATA_DIR", Path(temp_dir)):
+                api = backend.DesktopApi()
+                dummy_result = mock.Mock()
+                dummy_result.stderr = "  Duration: 00:01:30.50, start: 0.000000, bitrate: 1200 kb/s"
+                dummy_result.stdout = ""
+                with mock.patch("subprocess.run", return_value=dummy_result):
+                    with mock.patch.object(backend, "tool_path", return_value=Path(temp_dir) / "nonexistent.exe"):
+                        duration = api._conversion_duration("dummy.mp4")
+                        self.assertEqual(90.5, duration)
+
 
 if __name__ == "__main__":
     unittest.main()

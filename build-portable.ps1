@@ -34,9 +34,32 @@ $versionInfo = Join-Path $project 'assets\version_info.txt'
 $entry = Join-Path $project 'backend\app.py'
 $frontendDist = Join-Path $frontend 'dist'
 $tools = Join-Path $parent 'tools'
+$stagingTools = Join-Path $project 'build-temp\tools'
+if (Test-Path -LiteralPath $stagingTools) { Remove-Item -LiteralPath $stagingTools -Recurse -Force }
+New-Item -ItemType Directory -Force -Path $stagingTools | Out-Null
+Get-ChildItem -Path $tools -File | Where-Object { $_.Name -ne 'ffprobe.exe' } | ForEach-Object {
+    Copy-Item -LiteralPath $_.FullName -Destination $stagingTools
+}
 
+# 1. Build unpacked onedir for instant 1-second application launch via installer
+$onedirDist = Join-Path $dist 'onedir'
+& $venvPython -m PyInstaller --noconfirm --clean --windowed --onedir `
+    --name 'CPSUniversalDownloader' `
+    --icon $icon `
+    --version-file $versionInfo `
+    --distpath $onedirDist `
+    --workpath (Join-Path $project 'build-temp') `
+    --specpath (Join-Path $project 'build-temp') `
+    --collect-all webview `
+    --add-data "$frontendDist;frontend" `
+    --add-data "$stagingTools;tools" `
+    --add-data "$(Join-Path $project 'browser-extension');browser-extension" `
+    $entry
+if ($LASTEXITCODE -ne 0) { throw 'Onedir application build failed.' }
+
+# 2. Build standalone single-file portable executable (without ffprobe, ~100MB lighter)
 & $venvPython -m PyInstaller --noconfirm --clean --windowed --onefile `
-    --name 'CPSUniversalDownloaderReact' `
+    --name 'CPSUniversalDownloader' `
     --icon $icon `
     --version-file $versionInfo `
     --distpath $dist `
@@ -44,19 +67,19 @@ $tools = Join-Path $parent 'tools'
     --specpath (Join-Path $project 'build-temp') `
     --collect-all webview `
     --add-data "$frontendDist;frontend" `
-    --add-data "$tools;tools" `
+    --add-data "$stagingTools;tools" `
     --add-data "$(Join-Path $project 'browser-extension');browser-extension" `
     $entry
 if ($LASTEXITCODE -ne 0) { throw 'Portable executable build failed.' }
 
 $portable = Join-Path $dist $appName
-Move-Item -LiteralPath (Join-Path $dist 'CPSUniversalDownloaderReact.exe') -Destination $portable
 $releaseExe = Join-Path $release 'CPS-Universal-Downloader-v1.2.5-Portable.exe'
 Copy-Item -LiteralPath $portable -Destination $releaseExe -Force
 
 $zip = Join-Path $release 'CPS-Universal-Downloader-v1.2.5-Windows-x64-Single-EXE.zip'
 if (Test-Path -LiteralPath $zip) { Remove-Item -LiteralPath $zip -Force }
 Compress-Archive -LiteralPath $portable -DestinationPath $zip -CompressionLevel Optimal
+Write-Host "Onedir application: $(Join-Path $onedirDist 'CPSUniversalDownloader')"
 Write-Host "Single-file portable app: $portable"
 Write-Host "Shareable portable app: $releaseExe"
 Write-Host "Release archive: $zip"
