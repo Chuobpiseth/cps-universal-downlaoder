@@ -28,10 +28,13 @@ from urllib.parse import parse_qs, quote, urlparse
 
 
 APP_NAME = "CPS Universal Downloader Premium"
-APP_VERSION = "1.2.4"
+APP_VERSION = "1.2.5"
 GITHUB_REPOSITORY = "Chuobpiseth/cps-universal-downlaoder"
 GITHUB_RELEASE_API = f"https://api.github.com/repos/{GITHUB_REPOSITORY}/releases/latest"
 CODECRAFT_API_BASE = "https://codecraftapi.com/v1"
+GROQ_API_BASE = "https://api.groq.com/openai/v1"
+OPENROUTER_API_BASE = "https://openrouter.ai/api/v1"
+INCEPTION_API_BASE = "https://api.inceptionlabs.ai/v1"
 SOURCE_ROOT = Path(__file__).resolve().parents[1]
 BUNDLE_ROOT = Path(getattr(sys, "_MEIPASS", SOURCE_ROOT))
 APP_ROOT = Path(sys.executable).resolve().parent if getattr(sys, "frozen", False) else SOURCE_ROOT
@@ -353,6 +356,9 @@ class DesktopApi:
         self._recipes_file = DATA_DIR / "workflow-recipes.json"
         self._key_file = DATA_DIR / "gemini-key.bin"
         self._codecraft_key_file = DATA_DIR / "codecraft-key.bin"
+        self._groq_key_file = DATA_DIR / "groq-key.bin"
+        self._openrouter_key_file = DATA_DIR / "openrouter-key.bin"
+        self._inception_key_file = DATA_DIR / "inception-key.bin"
         self._custom_key_file = DATA_DIR / "custom-ai-key.bin"
         self.settings = {**self._default_settings(), **self._load_json(self._settings_file, {})}
         if self.settings.get("language") == "ខ្មែរ":
@@ -393,6 +399,9 @@ class DesktopApi:
             "aiFallback": True,
             "geminiModel": "gemini-2.5-flash",
             "codecraftModel": "claude-opus-4.8",
+            "groqModel": "llama-3.2-11b-vision-preview",
+            "openrouterModel": "meta-llama/llama-3.2-11b-vision-instruct:free",
+            "inceptionModel": "mercury-2.5",
             "customApiBase": "https://api.openai.com/v1",
             "customApiModel": "",
             "embedSubtitles": False,
@@ -524,6 +533,9 @@ class DesktopApi:
         settings["hasGeminiKey"] = bool(self._gemini_keys())
         settings["geminiKeyCount"] = len(self._gemini_keys())
         settings["hasCodecraftApiKey"] = self._codecraft_key_file.exists()
+        settings["hasGroqApiKey"] = self._groq_key_file.exists()
+        settings["hasOpenrouterApiKey"] = self._openrouter_key_file.exists()
+        settings["hasInceptionApiKey"] = self._inception_key_file.exists()
         settings["hasCustomApiKey"] = self._custom_key_file.exists()
         return {"name": APP_NAME, "version": APP_VERSION, "settings": settings, "queue": self.queue, "history": self.history, "activity": self.activity, "recipes": self.list_workflow_recipes(), "conversions": self.conversions, "updateStatus": dict(self._update_state), "toolsReady": all(tool_path(name).exists() for name in ("yt-dlp.exe", "ffmpeg.exe", "ffprobe.exe", "deno.exe")), "extensionReady": self._extension.ready}
 
@@ -1040,6 +1052,15 @@ class DesktopApi:
         codecraft_key = str(values.get("codecraftApiKey", "")).strip()
         if codecraft_key:
             self._codecraft_key_file.write_bytes(protect_secret(codecraft_key))
+        groq_key = str(values.get("groqApiKey", "")).strip()
+        if groq_key:
+            self._groq_key_file.write_bytes(protect_secret(groq_key))
+        openrouter_key = str(values.get("openrouterApiKey", "")).strip()
+        if openrouter_key:
+            self._openrouter_key_file.write_bytes(protect_secret(openrouter_key))
+        inception_key = str(values.get("inceptionApiKey", "")).strip()
+        if inception_key:
+            self._inception_key_file.write_bytes(protect_secret(inception_key))
         custom_key = str(values.get("customApiKey", "")).strip()
         if custom_key:
             self._custom_key_file.write_bytes(protect_secret(custom_key))
@@ -1047,6 +1068,9 @@ class DesktopApi:
         result["hasGeminiKey"] = bool(self._gemini_keys())
         result["geminiKeyCount"] = len(self._gemini_keys())
         result["hasCodecraftApiKey"] = self._codecraft_key_file.exists()
+        result["hasGroqApiKey"] = self._groq_key_file.exists()
+        result["hasOpenrouterApiKey"] = self._openrouter_key_file.exists()
+        result["hasInceptionApiKey"] = self._inception_key_file.exists()
         result["hasCustomApiKey"] = self._custom_key_file.exists()
         return result
 
@@ -1638,6 +1662,21 @@ class DesktopApi:
             return transient.strip()
         return unprotect_secret(self._codecraft_key_file.read_bytes()) if self._codecraft_key_file.exists() else ""
 
+    def _groq_secret(self, transient: str = "") -> str:
+        if transient.strip():
+            return transient.strip()
+        return unprotect_secret(self._groq_key_file.read_bytes()) if self._groq_key_file.exists() else ""
+
+    def _openrouter_secret(self, transient: str = "") -> str:
+        if transient.strip():
+            return transient.strip()
+        return unprotect_secret(self._openrouter_key_file.read_bytes()) if self._openrouter_key_file.exists() else ""
+
+    def _inception_secret(self, transient: str = "") -> str:
+        if transient.strip():
+            return transient.strip()
+        return unprotect_secret(self._inception_key_file.read_bytes()) if self._inception_key_file.exists() else ""
+
     def browser_extension_status(self) -> dict[str, Any]:
         result = {"ready": self._extension.ready, "port": LocalExtensionServer.PORT, "token": self.settings["apiToken"], "error": self._extension.error}
         if not self._extension.ready:
@@ -1683,6 +1722,76 @@ class DesktopApi:
                 pass
             return fallback_models
 
+        if provider == "Groq":
+            key = self._groq_secret(str(values.get("groqApiKey", "")))
+            fallback_models = [
+                "llama-3.2-11b-vision-preview",
+                "llama-3.2-90b-vision-preview",
+                "llama-3.3-70b-versatile",
+                "mixtral-8x7b-32768",
+                "gemma2-9b-it",
+                "qwen-2.5-32b",
+            ]
+            if not key:
+                return fallback_models
+            headers = {"Accept": "application/json", "Authorization": f"Bearer {key}"}
+            request = urllib.request.Request(f"{GROQ_API_BASE}/models", headers=headers)
+            try:
+                with urllib.request.urlopen(request, timeout=20) as response:
+                    payload = json.loads(response.read())
+                models = sorted(str(item["id"]) for item in payload.get("data", []) if item.get("id"))
+                if models:
+                    return models
+            except Exception:
+                pass
+            return fallback_models
+
+        if provider == "OpenRouter":
+            key = self._openrouter_secret(str(values.get("openrouterApiKey", "")))
+            fallback_models = [
+                "meta-llama/llama-3.2-11b-vision-instruct:free",
+                "google/gemini-2.0-flash-exp:free",
+                "deepseek/deepseek-r1:free",
+                "meta-llama/llama-3.3-70b-instruct:free",
+                "qwen/qwen-2-vl-72b-instruct:free",
+                "mistralai/mistral-7b-instruct:free",
+            ]
+            if not key:
+                return fallback_models
+            headers = {"Accept": "application/json", "Authorization": f"Bearer {key}"}
+            request = urllib.request.Request(f"{OPENROUTER_API_BASE}/models", headers=headers)
+            try:
+                with urllib.request.urlopen(request, timeout=20) as response:
+                    payload = json.loads(response.read())
+                models = sorted(str(item["id"]) for item in payload.get("data", []) if item.get("id"))
+                if models:
+                    return models
+            except Exception:
+                pass
+            return fallback_models
+
+        if provider == "InceptionLabs":
+            key = self._inception_secret(str(values.get("inceptionApiKey", "")))
+            fallback_models = [
+                "mercury-2.5",
+                "mercury-2",
+                "mercury-voice",
+                "mercury-edit-2",
+            ]
+            if not key:
+                return fallback_models
+            headers = {"Accept": "application/json", "Authorization": f"Bearer {key}"}
+            request = urllib.request.Request(f"{INCEPTION_API_BASE}/models", headers=headers)
+            try:
+                with urllib.request.urlopen(request, timeout=20) as response:
+                    payload = json.loads(response.read())
+                models = sorted(str(item["id"]) for item in payload.get("data", []) if item.get("id"))
+                if models:
+                    return models
+            except Exception:
+                pass
+            return fallback_models
+
         if provider == "Custom":
             key = self._custom_secret(str(values.get("customApiKey", "")))
             base = self._validate_api_base(str(values.get("customApiBase") or self.settings.get("customApiBase") or ""))
@@ -1718,6 +1827,18 @@ class DesktopApi:
             key = self._codecraft_secret(str(values.get("codecraftApiKey", "")))
             if not key:
                 raise ValueError("Enter or save your CodeCraft API key first (1M free tokens at https://codecraftapi.com).")
+        if provider == "Groq":
+            key = self._groq_secret(str(values.get("groqApiKey", "")))
+            if not key:
+                raise ValueError("Enter or save your Groq API key first (7,000 free requests/day at https://console.groq.com/keys).")
+        if provider == "OpenRouter":
+            key = self._openrouter_secret(str(values.get("openrouterApiKey", "")))
+            if not key:
+                raise ValueError("Enter or save your OpenRouter API key first (free models at https://openrouter.ai/keys).")
+        if provider == "InceptionLabs":
+            key = self._inception_secret(str(values.get("inceptionApiKey", "")))
+            if not key:
+                raise ValueError("Enter or save your Inception Labs API key first (https://inceptionlabs.ai).")
         models = self.list_ai_models(values)
         return {"connected": True, "provider": provider, "models": models, "message": f"Connected to {provider}. {len(models)} models available."}
 
@@ -1753,45 +1874,83 @@ class DesktopApi:
                     errors.append(f"{model}: {exc}")
         raise RuntimeError("All saved Gemini keys failed. " + (errors[-1] if errors else ""))
 
+    def _openai_chat_request(
+        self,
+        base_url: str,
+        api_key: str,
+        model: str,
+        content: str | list[dict[str, Any]],
+        timeout: int = 120,
+        extra_headers: dict[str, str] | None = None,
+        provider_name: str = "AI",
+        temperature: float = 0.35,
+    ) -> str:
+        if isinstance(content, list) and content and isinstance(content[0], dict) and "role" in content[0]:
+            messages = content
+        else:
+            messages = [{"role": "user", "content": content}]
+
+        body = json.dumps({"model": model, "messages": messages, "temperature": temperature}).encode()
+        headers = {"Content-Type": "application/json"}
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
+        if extra_headers:
+            headers.update(extra_headers)
+
+        endpoint = f"{base_url.rstrip('/')}/chat/completions"
+        request = urllib.request.Request(endpoint, data=body, headers=headers)
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                payload = json.loads(response.read())
+            choices = payload.get("choices", [])
+            if not choices:
+                raise RuntimeError(f"The {provider_name} returned an empty choices list.")
+            text = str(choices[0].get("message", {}).get("content", "")).strip()
+            if not text:
+                raise RuntimeError(f"The {provider_name} returned no text content.")
+            return text
+        except urllib.error.HTTPError as exc:
+            raise self._api_error(exc, f"{provider_name} request failed.") from exc
+
     def _custom_generate(self, content: str | list[dict[str, Any]], timeout: int = 120) -> str:
         key = self._custom_secret()
         base = self._validate_api_base(str(self.settings.get("customApiBase") or ""))
         model = str(self.settings.get("customApiModel") or "").strip()
         if not model:
             raise ValueError("Choose a custom AI model in Settings first.")
-        body = json.dumps({"model": model, "messages": [{"role": "user", "content": content}], "temperature": 0.35}).encode()
-        headers = {"Content-Type": "application/json"}
-        if key:
-            headers["Authorization"] = f"Bearer {key}"
-        request = urllib.request.Request(f"{base}/chat/completions", data=body, headers=headers)
-        try:
-            with urllib.request.urlopen(request, timeout=timeout) as response:
-                payload = json.loads(response.read())
-            text = str(payload["choices"][0]["message"]["content"]).strip()
-            if not text:
-                raise RuntimeError("The custom AI returned no text response.")
-            return text
-        except urllib.error.HTTPError as exc:
-            raise self._api_error(exc, "Custom AI request failed.") from exc
+        return self._openai_chat_request(base, key, model, content, timeout=timeout, provider_name="Custom AI")
 
     def _codecraft_generate(self, content: str | list[dict[str, Any]], timeout: int = 120) -> str:
         key = self._codecraft_secret()
         if not key:
             raise ValueError("Add your CodeCraft API key in Settings first (1M free tokens at https://codecraftapi.com).")
         model = str(self.settings.get("codecraftModel") or "claude-opus-4.8").strip()
-        messages = content if (isinstance(content, list) and content and isinstance(content[0], dict) and "role" in content[0]) else [{"role": "user", "content": content}]
-        body = json.dumps({"model": model, "messages": messages, "temperature": 0.35}).encode()
-        headers = {"Content-Type": "application/json", "Authorization": f"Bearer {key}"}
-        request = urllib.request.Request(f"{CODECRAFT_API_BASE}/chat/completions", data=body, headers=headers)
-        try:
-            with urllib.request.urlopen(request, timeout=timeout) as response:
-                payload = json.loads(response.read())
-            text = str(payload["choices"][0]["message"]["content"]).strip()
-            if not text:
-                raise RuntimeError("The CodeCraft AI returned no text response.")
-            return text
-        except urllib.error.HTTPError as exc:
-            raise self._api_error(exc, "CodeCraft AI request failed.") from exc
+        return self._openai_chat_request(CODECRAFT_API_BASE, key, model, content, timeout=timeout, provider_name="CodeCraft AI")
+
+    def _groq_generate(self, content: str | list[dict[str, Any]], timeout: int = 120) -> str:
+        key = self._groq_secret()
+        if not key:
+            raise ValueError("Add your Groq API key in Settings first (7,000 free requests/day at https://console.groq.com/keys).")
+        model = str(self.settings.get("groqModel") or "llama-3.2-11b-vision-preview").strip()
+        return self._openai_chat_request(GROQ_API_BASE, key, model, content, timeout=timeout, provider_name="Groq AI")
+
+    def _openrouter_generate(self, content: str | list[dict[str, Any]], timeout: int = 120) -> str:
+        key = self._openrouter_secret()
+        if not key:
+            raise ValueError("Add your OpenRouter API key in Settings first (free models at https://openrouter.ai/keys).")
+        model = str(self.settings.get("openrouterModel") or "meta-llama/llama-3.2-11b-vision-instruct:free").strip()
+        extra_headers = {
+            "HTTP-Referer": "https://github.com/Chuobpiseth/cps-universal-downlaoder",
+            "X-Title": "CPS Universal Downloader",
+        }
+        return self._openai_chat_request(OPENROUTER_API_BASE, key, model, content, timeout=timeout, extra_headers=extra_headers, provider_name="OpenRouter")
+
+    def _inception_generate(self, content: str | list[dict[str, Any]], timeout: int = 120) -> str:
+        key = self._inception_secret()
+        if not key:
+            raise ValueError("Add your Inception Labs API key in Settings first (https://inceptionlabs.ai).")
+        model = str(self.settings.get("inceptionModel") or "mercury-2.5").strip()
+        return self._openai_chat_request(INCEPTION_API_BASE, key, model, content, timeout=timeout, provider_name="Inception Labs")
 
     def generate_thumbnail_prompt(self, thumbnail_url: str, title: str = "", provider_override: str = "") -> str:
         thumbnail_url = validate_url(thumbnail_url)
@@ -1801,11 +1960,26 @@ class DesktopApi:
             f"Video title for context: {title or 'Unknown'}. Return only the detailed prompt."
         )
         provider = provider_override or str(self.settings.get("aiProvider") or "Gemini")
-        if provider in {"Custom", "CodeCraft"}:
-            fn = self._codecraft_generate if provider == "CodeCraft" else self._custom_generate
+        if provider in {"Custom", "CodeCraft", "Groq", "OpenRouter", "InceptionLabs"}:
+            if provider == "Groq":
+                fn = self._groq_generate
+            elif provider == "OpenRouter":
+                fn = self._openrouter_generate
+            elif provider == "InceptionLabs":
+                fn = self._inception_generate
+            elif provider == "CodeCraft":
+                fn = self._codecraft_generate
+            else:
+                fn = self._custom_generate
+
+            img_target = thumbnail_url
+            try:
+                img_target = self.thumbnail_data_url(thumbnail_url)
+            except Exception:
+                pass
             return fn([
                 {"type": "text", "text": prompt},
-                {"type": "image_url", "image_url": {"url": thumbnail_url}},
+                {"type": "image_url", "image_url": {"url": img_target}},
             ])
 
         image_request = urllib.request.Request(thumbnail_url, headers={"User-Agent": "CPSUniversalDownloader/1.0"})
@@ -1831,11 +2005,26 @@ class DesktopApi:
             f"Video title for context: {title or 'Unknown'}."
         )
         provider = provider_override or str(self.settings.get("aiProvider") or "Gemini")
-        if provider in {"Custom", "CodeCraft"}:
-            fn = self._codecraft_generate if provider == "CodeCraft" else self._custom_generate
+        if provider in {"Custom", "CodeCraft", "Groq", "OpenRouter", "InceptionLabs"}:
+            if provider == "Groq":
+                fn = self._groq_generate
+            elif provider == "OpenRouter":
+                fn = self._openrouter_generate
+            elif provider == "InceptionLabs":
+                fn = self._inception_generate
+            elif provider == "CodeCraft":
+                fn = self._codecraft_generate
+            else:
+                fn = self._custom_generate
+
+            img_target = thumbnail_url
+            try:
+                img_target = self.thumbnail_data_url(thumbnail_url)
+            except Exception:
+                pass
             return fn([
                 {"type": "text", "text": prompt},
-                {"type": "image_url", "image_url": {"url": thumbnail_url}},
+                {"type": "image_url", "image_url": {"url": img_target}},
             ])
         if provider == "Florence-2":
             raise ValueError("Florence-2 runs locally in the interface. Install the local model there or enable automatic fallback.")
@@ -2026,7 +2215,7 @@ class DesktopApi:
         preferred = str(self.settings.get("aiProvider") or "Gemini")
         providers = [preferred]
         if self.settings.get("aiFallback", True):
-            providers.extend(provider for provider in ("Gemini", "CodeCraft", "Custom") if provider != preferred)
+            providers.extend(provider for provider in ("Gemini", "Groq", "OpenRouter", "CodeCraft", "InceptionLabs", "Custom") if provider != preferred)
         errors = []
         for provider in providers:
             if provider == "Florence-2":
@@ -2040,24 +2229,42 @@ class DesktopApi:
     def _ai_chat_provider(self, provider: str, prompt: str, video_url: str, messages: list[dict[str, str]]) -> str:
         context = f"Video link: {video_url}\n" if video_url else ""
         prior_messages = messages[:-1] if messages and messages[-1].get("role") == "You" and messages[-1].get("text") == prompt else messages
+        conversation = [{"role": "system", "content": f"You are the CPS video assistant. Be concise and useful.\n{context}"}]
+        for item in prior_messages[-12:]:
+            conversation.append({"role": "user" if item.get("role") == "You" else "assistant", "content": str(item.get("text", ""))})
+        conversation.append({"role": "user", "content": prompt})
+
         if provider == "CodeCraft":
             key = self._codecraft_secret()
             if not key:
                 raise ValueError("Add your CodeCraft API key in Settings first (1M free tokens at https://codecraftapi.com).")
             model = str(self.settings.get("codecraftModel") or "claude-opus-4.8").strip()
-            conversation = [{"role": "system", "content": f"You are the CPS video assistant. Be concise and useful.\n{context}"}]
-            for item in prior_messages[-12:]:
-                conversation.append({"role": "user" if item.get("role") == "You" else "assistant", "content": str(item.get("text", ""))})
-            conversation.append({"role": "user", "content": prompt})
-            body = json.dumps({"model": model, "messages": conversation, "temperature": 0.4}).encode()
-            headers = {"Content-Type": "application/json", "Authorization": f"Bearer {key}"}
-            request = urllib.request.Request(f"{CODECRAFT_API_BASE}/chat/completions", data=body, headers=headers)
-            try:
-                with urllib.request.urlopen(request, timeout=90) as response:
-                    payload = json.loads(response.read())
-                return str(payload["choices"][0]["message"]["content"]).strip()
-            except urllib.error.HTTPError as exc:
-                raise self._api_error(exc, "CodeCraft AI request failed.") from exc
+            return self._openai_chat_request(CODECRAFT_API_BASE, key, model, conversation, timeout=90, provider_name="CodeCraft AI", temperature=0.4)
+
+        if provider == "Groq":
+            key = self._groq_secret()
+            if not key:
+                raise ValueError("Add your Groq API key in Settings first (7,000 free requests/day at https://console.groq.com/keys).")
+            model = str(self.settings.get("groqModel") or "llama-3.2-11b-vision-preview").strip()
+            return self._openai_chat_request(GROQ_API_BASE, key, model, conversation, timeout=90, provider_name="Groq AI", temperature=0.4)
+
+        if provider == "OpenRouter":
+            key = self._openrouter_secret()
+            if not key:
+                raise ValueError("Add your OpenRouter API key in Settings first (free models at https://openrouter.ai/keys).")
+            model = str(self.settings.get("openrouterModel") or "meta-llama/llama-3.2-11b-vision-instruct:free").strip()
+            extra_headers = {
+                "HTTP-Referer": "https://github.com/Chuobpiseth/cps-universal-downlaoder",
+                "X-Title": "CPS Universal Downloader",
+            }
+            return self._openai_chat_request(OPENROUTER_API_BASE, key, model, conversation, timeout=90, extra_headers=extra_headers, provider_name="OpenRouter", temperature=0.4)
+
+        if provider == "InceptionLabs":
+            key = self._inception_secret()
+            if not key:
+                raise ValueError("Add your Inception Labs API key in Settings first (https://inceptionlabs.ai).")
+            model = str(self.settings.get("inceptionModel") or "mercury-2.5").strip()
+            return self._openai_chat_request(INCEPTION_API_BASE, key, model, conversation, timeout=90, provider_name="Inception Labs", temperature=0.4)
 
         if provider == "Custom":
             key = self._custom_secret()
@@ -2065,21 +2272,7 @@ class DesktopApi:
             model = str(self.settings.get("customApiModel") or "").strip()
             if not model:
                 raise ValueError("Choose a custom AI model in Settings first.")
-            conversation = [{"role": "system", "content": f"You are the CPS video assistant. Be concise and useful.\n{context}"}]
-            for item in prior_messages[-12:]:
-                conversation.append({"role": "user" if item.get("role") == "You" else "assistant", "content": str(item.get("text", ""))})
-            conversation.append({"role": "user", "content": prompt})
-            body = json.dumps({"model": model, "messages": conversation, "temperature": 0.4}).encode()
-            headers = {"Content-Type": "application/json"}
-            if key:
-                headers["Authorization"] = f"Bearer {key}"
-            request = urllib.request.Request(f"{base}/chat/completions", data=body, headers=headers)
-            try:
-                with urllib.request.urlopen(request, timeout=90) as response:
-                    payload = json.loads(response.read())
-                return str(payload["choices"][0]["message"]["content"]).strip()
-            except urllib.error.HTTPError as exc:
-                raise self._api_error(exc, "Custom AI request failed.") from exc
+            return self._openai_chat_request(base, key, model, conversation, timeout=90, provider_name="Custom AI", temperature=0.4)
 
         history = "\n".join(f"{item.get('role')}: {item.get('text')}" for item in prior_messages[-10:])
         return self._gemini_generate([{"text": f"You are the CPS video assistant. Be concise and useful.\n{context}{history}\nUser: {prompt}"}], timeout=90)

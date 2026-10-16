@@ -11,7 +11,7 @@ import {
   BrainCircuit, Image as ImageIcon
   , Wrench, Captions, Scissors, ListVideo, RefreshCw, MonitorUp,
   RotateCcw, PackageOpen, Save, Film, Coffee, ExternalLink, Heart,
-  Link2, Volume2, Video
+  Link2, Volume2, Video, Cpu, Layers
 } from 'lucide-react'
 import './styles.css'
 
@@ -884,13 +884,121 @@ function SettingsPage({ draft, setDraft, browse, browseConversion, save, models,
     <Card className="wide-card update-card"><div className="card-title"><div><span className="section-icon cyan"><RefreshCw className={updateStatus?.status === 'checking' ? 'spin' : ''}/></span><h2>Application updates</h2><p>Automatically checks verified releases from GitHub and restarts after installation.</p></div><span className={`connection-pill ${updateStatus?.status === 'current' ? 'online' : ''}`}>Version {updateStatus?.currentVersion || '—'}</span></div><div className="update-layout"><div><strong>{updateStatus?.available ? `Version ${updateStatus.latestVersion} available` : updateStatus?.status === 'current' ? 'You have the latest version' : 'Release update service'}</strong><p className={updateStatus?.status === 'error' ? 'connection-error' : 'hint'}>{updateStatus?.message}</p>{['downloading','installing'].includes(updateStatus?.status) && <div className="update-progress"><span style={{ width: `${updateStatus.progress || 0}%` }}/></div>}</div><div className="button-row"><Button icon={RefreshCw} onClick={checkUpdate} disabled={['checking','downloading','installing'].includes(updateStatus?.status)}>{updateStatus?.status === 'checking' ? 'Checking…' : 'Check for updates'}</Button>{updateStatus?.available && <Button icon={Download} variant="primary" onClick={installUpdate} disabled={['downloading','installing'].includes(updateStatus?.status)}>{updateStatus?.status === 'downloading' ? `Downloading ${Math.round(updateStatus.progress || 0)}%` : updateStatus?.status === 'installing' ? 'Restarting…' : `Install ${updateStatus.latestVersion}`}</Button>}</div></div></Card>
     <Card className="wide-card extension-card"><div className="card-title"><div><span className="section-icon cyan"><Cable/></span><h2>Browser extension</h2><p>Authenticated local connection for the YouTube, TikTok, Facebook, and web video button.</p></div><span className={`connection-pill ${extensionConnection?.connected ? 'online' : ''}`}><Wifi/>{extensionConnection?.connected ? 'Connected' : 'Not tested'}</span></div><div className="extension-grid"><label>Local endpoint<input value="http://127.0.0.1:38473" readOnly/></label><label>Connection token<div className="input-action"><input value={draft.apiToken} readOnly/><Button icon={Copy} onClick={() => navigator.clipboard.writeText(draft.apiToken)}>Copy</Button></div></label><div className="button-row"><Button icon={Wifi} variant="success" onClick={testExtension}>Test connection</Button><Button icon={UploadCloud} onClick={() => api.export_browser_extension()}>Export extension</Button></div></div>{extensionConnection?.error && <p className="connection-error">{extensionConnection.error}</p>}</Card>
     <Card className="wide-card ai-settings-card">
-      <div className="card-title"><div><span className="section-icon purple"><BrainCircuit/></span><h2>AI provider and model</h2><p>Choose the default provider. Automatic fallback tries another configured provider when the preferred one fails.</p></div><ShieldCheck/></div>
-      <div className="provider-switch four-providers">
+      <div className="card-title"><div><span className="section-icon purple"><BrainCircuit/></span><h2>AI provider and model</h2><p>Choose your preferred AI intelligence engine. Supports Google Gemini, Groq Cloud, OpenRouter, CodeCraft, and Inception Labs.</p></div><ShieldCheck/></div>
+      <div className="provider-switch multi-providers">
         <button className={draft.aiProvider === 'Gemini' ? 'selected' : ''} onClick={() => set('aiProvider', 'Gemini')}><img src="./platforms/gemini.svg" alt=""/>Google Gemini</button>
-        <button className={draft.aiProvider === 'CodeCraft' ? 'selected' : ''} onClick={() => set('aiProvider', 'CodeCraft')}><Sparkles size={16}/>CodeCraft (1M Free)</button>
-        <button className={draft.aiProvider === 'Custom' ? 'selected' : ''} onClick={() => set('aiProvider', 'Custom')}><Server/>Custom API</button>
-        <button className={draft.aiProvider === 'Florence-2' ? 'selected' : ''} onClick={() => set('aiProvider', 'Florence-2')}><MonitorUp/>Local Florence-2</button>
+        <button className={draft.aiProvider === 'Groq' ? 'selected' : ''} onClick={() => set('aiProvider', 'Groq')}><Zap size={15}/>Groq Cloud (7K Free/d)</button>
+        <button className={draft.aiProvider === 'OpenRouter' ? 'selected' : ''} onClick={() => set('aiProvider', 'OpenRouter')}><Layers size={15}/>OpenRouter (Free)</button>
+        <button className={draft.aiProvider === 'CodeCraft' ? 'selected' : ''} onClick={() => set('aiProvider', 'CodeCraft')}><Sparkles size={15}/>CodeCraft (1M Free)</button>
+        <button className={draft.aiProvider === 'InceptionLabs' ? 'selected' : ''} onClick={() => set('aiProvider', 'InceptionLabs')}><Cpu size={15}/>Inception Labs</button>
+        <button className={draft.aiProvider === 'Custom' ? 'selected' : ''} onClick={() => set('aiProvider', 'Custom')}><Server size={15}/>Custom API</button>
+        <button className={draft.aiProvider === 'Florence-2' ? 'selected' : ''} onClick={() => set('aiProvider', 'Florence-2')}><MonitorUp size={15}/>Local Florence-2</button>
       </div>
+      {draft.aiProvider === 'Groq' && (
+        <div className="codecraft-key-manager">
+          <div className="codecraft-banner groq-banner">
+            <Zap size={18} className="groq-icon"/>
+            <div className="codecraft-copy">
+              <strong>7,000 Free Daily Requests • Ultra-Fast Inference • Meta Llama 3.2 Vision</strong>
+              <p>Groq runs Llama 3.2 11B/90B Vision and Llama 3.3 70B at 300+ tokens/sec. Ideal for reverse-engineering thumbnail prompts and instant chat.</p>
+            </div>
+            <button type="button" className="codecraft-signup-btn groq-signup-btn" onClick={() => (api?.open_external_url ? api.open_external_url('https://console.groq.com/keys') : window.open('https://console.groq.com/keys', '_blank'))}>
+              <ExternalLink size={13}/> Get Free Key
+            </button>
+          </div>
+          <div className="ai-fields codecraft-grid">
+            <label>
+              Groq API Key
+              <input
+                type="password"
+                placeholder={draft.hasGroqApiKey ? 'Key saved securely •••••••• (paste to update)' : 'Paste Groq key (starts with gsk_)'}
+                value={draft.groqApiKey || ''}
+                onChange={event => set('groqApiKey', event.target.value)}
+              />
+            </label>
+            <label>
+              Groq Model
+              <select value={draft.groqModel || 'llama-3.2-11b-vision-preview'} onChange={event => set('groqModel', event.target.value)}>
+                <option value={draft.groqModel || 'llama-3.2-11b-vision-preview'}>{draft.groqModel || 'llama-3.2-11b-vision-preview'}</option>
+                {models.filter(value => value !== (draft.groqModel || 'llama-3.2-11b-vision-preview')).map(value => (
+                  <option key={value} value={value}>{value}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <p className="hint">Encrypted with Windows DPAPI. Free tier gives 7,000 requests/day with full Llama 3.2 Vision support.</p>
+        </div>
+      )}
+      {draft.aiProvider === 'OpenRouter' && (
+        <div className="codecraft-key-manager">
+          <div className="codecraft-banner openrouter-banner">
+            <Layers size={18} className="openrouter-icon"/>
+            <div className="codecraft-copy">
+              <strong>Free Multimodal & Open Models • Universal AI Gateway</strong>
+              <p>Access free-tier Vision (Llama 3.2 11B Vision, Gemini 2.0 Flash) and DeepSeek R1 reasoning models without credit card.</p>
+            </div>
+            <button type="button" className="codecraft-signup-btn openrouter-signup-btn" onClick={() => (api?.open_external_url ? api.open_external_url('https://openrouter.ai/keys') : window.open('https://openrouter.ai/keys', '_blank'))}>
+              <ExternalLink size={13}/> Get Free Key
+            </button>
+          </div>
+          <div className="ai-fields codecraft-grid">
+            <label>
+              OpenRouter API Key
+              <input
+                type="password"
+                placeholder={draft.hasOpenrouterApiKey ? 'Key saved securely •••••••• (paste to update)' : 'Paste OpenRouter key (starts with sk-or-v1-)'}
+                value={draft.openrouterApiKey || ''}
+                onChange={event => set('openrouterApiKey', event.target.value)}
+              />
+            </label>
+            <label>
+              OpenRouter Model
+              <select value={draft.openrouterModel || 'meta-llama/llama-3.2-11b-vision-instruct:free'} onChange={event => set('openrouterModel', event.target.value)}>
+                <option value={draft.openrouterModel || 'meta-llama/llama-3.2-11b-vision-instruct:free'}>{draft.openrouterModel || 'meta-llama/llama-3.2-11b-vision-instruct:free'}</option>
+                {models.filter(value => value !== (draft.openrouterModel || 'meta-llama/llama-3.2-11b-vision-instruct:free')).map(value => (
+                  <option key={value} value={value}>{value}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <p className="hint">Encrypted with Windows DPAPI. Select any model ending with <code>:free</code> for unlimited 0-cost usage.</p>
+        </div>
+      )}
+      {draft.aiProvider === 'InceptionLabs' && (
+        <div className="codecraft-key-manager">
+          <div className="codecraft-banner inception-banner">
+            <Cpu size={18} className="inception-icon"/>
+            <div className="codecraft-copy">
+              <strong>Inception Labs • Mercury Diffusion LLM (260K Context)</strong>
+              <p>State-of-the-art diffusion language models (dLLMs) featuring Mercury 2.5 and Mercury 2 with high-speed reasoning and deep context.</p>
+            </div>
+            <button type="button" className="codecraft-signup-btn inception-signup-btn" onClick={() => (api?.open_external_url ? api.open_external_url('https://inceptionlabs.ai') : window.open('https://inceptionlabs.ai', '_blank'))}>
+              <ExternalLink size={13}/> Inception Labs
+            </button>
+          </div>
+          <div className="ai-fields codecraft-grid">
+            <label>
+              Inception Labs API Key
+              <input
+                type="password"
+                placeholder={draft.hasInceptionApiKey ? 'Key saved securely •••••••• (paste to update)' : 'Paste Inception Labs API key'}
+                value={draft.inceptionApiKey || ''}
+                onChange={event => set('inceptionApiKey', event.target.value)}
+              />
+            </label>
+            <label>
+              Inception Model
+              <select value={draft.inceptionModel || 'mercury-2.5'} onChange={event => set('inceptionModel', event.target.value)}>
+                <option value={draft.inceptionModel || 'mercury-2.5'}>{draft.inceptionModel || 'mercury-2.5'}</option>
+                {models.filter(value => value !== (draft.inceptionModel || 'mercury-2.5')).map(value => (
+                  <option key={value} value={value}>{value}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <p className="hint">Encrypted with Windows DPAPI. Connects to https://api.inceptionlabs.ai/v1 with native Mercury 2.5 and Mercury 2 support.</p>
+        </div>
+      )}
       {draft.aiProvider === 'CodeCraft' && (
         <div className="codecraft-key-manager">
           <div className="codecraft-banner">
@@ -971,7 +1079,7 @@ function AboutPage({ boot, api }) {
           </div>
         </div>
         <p className="about-lead">
-          A lightning-fast, privacy-first desktop workspace to download media from YouTube, TikTok, Facebook, Douyin, SharePoint, and 1,000+ platforms. Features native FFmpeg media conversion, multi-provider AI assistance (Google Gemini & CodeCraft API), and zero tracking.
+          A lightning-fast, privacy-first desktop workspace to download media from YouTube, TikTok, Facebook, Douyin, SharePoint, and 1,000+ platforms. Features native FFmpeg media conversion, multi-provider AI assistance (Groq Cloud, OpenRouter, CodeCraft, Inception Labs, Google Gemini), and zero tracking.
         </p>
 
         <div className="pro-feature-cards">
@@ -987,8 +1095,8 @@ function AboutPage({ boot, api }) {
           </div>
           <div className="pro-feature-item">
             <div className="feature-icon-bubble orange"><BrainCircuit size={20}/></div>
-            <strong>Dual AI Intelligence</strong>
-            <p>1M free tokens/mo with CodeCraft API, Google Gemini, and offline Florence-2 vision.</p>
+            <strong>Multi-Provider AI Intelligence</strong>
+            <p>Groq (7K free/d), OpenRouter (Free Vision), Inception Labs (Mercury dLLM), CodeCraft (1M/mo), and Google Gemini.</p>
           </div>
           <div className="pro-feature-item">
             <div className="feature-icon-bubble green"><ShieldCheck size={20}/></div>

@@ -400,7 +400,38 @@ class CoreTests(unittest.TestCase):
                 self.assertTrue(Path(result["path"]).exists())
                 self.assertEqual(b"\xff\xd8\xff\xe0fake_jpeg_content", Path(result["path"]).read_bytes())
 
+    def test_groq_openrouter_inception_models_and_generation(self):
+        api = backend.DesktopApi.__new__(backend.DesktopApi)
+        api._groq_key_file = Path("nonexistent-groq-key")
+        api._openrouter_key_file = Path("nonexistent-openrouter-key")
+        api._inception_key_file = Path("nonexistent-inception-key")
+        api.settings = {
+            "groqModel": "llama-3.2-11b-vision-preview",
+            "openrouterModel": "meta-llama/llama-3.2-11b-vision-instruct:free",
+            "inceptionModel": "mercury-2.5",
+        }
+
+        groq_models = api.list_ai_models({"aiProvider": "Groq"})
+        self.assertIn("llama-3.2-11b-vision-preview", groq_models)
+
+        openrouter_models = api.list_ai_models({"aiProvider": "OpenRouter"})
+        self.assertIn("meta-llama/llama-3.2-11b-vision-instruct:free", openrouter_models)
+
+        inception_models = api.list_ai_models({"aiProvider": "InceptionLabs"})
+        self.assertIn("mercury-2.5", inception_models)
+
+        class MockChatResponse:
+            def __enter__(self): return self
+            def __exit__(self, *args): return False
+            def read(self):
+                return json.dumps({"choices": [{"message": {"content": "Generated reply"}}]}).encode()
+
+        with mock.patch("urllib.request.urlopen", return_value=MockChatResponse()):
+            reply = api._openai_chat_request("https://api.example.com/v1", "test-key", "test-model", "test prompt")
+            self.assertEqual("Generated reply", reply)
+
 
 if __name__ == "__main__":
     unittest.main()
+
 
