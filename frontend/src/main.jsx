@@ -25,18 +25,92 @@ const audioFormats = ['MP3', 'M4A', 'AAC', 'WAV', 'FLAC', 'OGG', 'Original']
 const errorText = error => error?.message || String(error || 'Something went wrong.')
 const I18nContext = createContext(value => value)
 const khmer = {
-  Home: 'ទំព័រដើម', 'AI assistant': 'ជំនួយការ AI', Downloads: 'ការទាញយក', Queue: 'ជួររង់ចាំ', History: 'ប្រវត្តិ', Convert: 'បម្លែង', Studio: 'ស្ទូឌីយោ', Settings: 'ការកំណត់', About: 'អំពីកម្មវិធី',
+  // Navigation & Core Pages
+  Home: 'ទំព័រដើម', 'AI assistant': 'ជំនួយការ AI', AI: 'ជំនួយការ AI', Downloads: 'ការទាញយក', Queue: 'ជួររង់ចាំ', 'Download queue': 'ជួររង់ចាំទាញយក', History: 'ប្រវត្តិ', 'History & activity': 'ប្រវត្តិ & សកម្មភាព', Convert: 'បម្លែង', 'Media converter': 'កម្មវិធីបម្លែងមេឌៀ', Studio: 'ស្ទូឌីយោ', 'Creator studio': 'ស្ទូឌីយោអ្នកបង្កើត', Settings: 'ការកំណត់', About: 'អំពីកម្មវិធី',
   'Fast • private • portable': 'លឿន • ឯកជន • ចល័ត', 'More than downloads.': 'លើសពីការទាញយកវីដេអូ,', 'Create without limits.': 'ប្រើប្រាស់ដោយគ្មានដែនកំណត់',
   'Download, convert, and understand video with AI—all in one private creative workspace.': 'ទាញយក បម្លែង និងស្វែងយល់វីដេអូជាមួយ AI ក្នុងកន្លែងការងារឯកជនតែមួយ។',
-  'Paste a link to get started': 'បិទភ្ជាប់តំណដើម្បីចាប់ផ្ដើម', 'One URL, a playlist, or multiple links.': 'តំណមួយ បញ្ជីចាក់ ឬតំណច្រើន។', Paste: 'បិទភ្ជាប់', Analyze: 'វិភាគ', Analyzing: 'កំពុងវិភាគ',
-  'Download settings': 'ការកំណត់ទាញយក', Type: 'ប្រភេទ', Video: 'វីដេអូ', Audio: 'សំឡេង', Quality: 'គុណភាព', Format: 'ទម្រង់', 'Clip start': 'ចាប់ផ្ដើមកាត់', 'Clip end': 'បញ្ចប់កាត់',
-  'Quick presets': 'ការកំណត់រហ័ស', 'Download now': 'ទាញយកឥឡូវ', Working: 'កំពុងដំណើរការ', Best: 'ល្អបំផុត', Small: 'ទំហំតូច', 'Saving to': 'រក្សាទុកទៅ',
-  'Media converter': 'កម្មវិធីបម្លែងមេឌៀ', 'Convert video, audio, and images locally with the bundled FFmpeg engine.': 'បម្លែងវីដេអូ សំឡេង និងរូបភាពក្នុងកុំព្យូទ័រដោយម៉ាស៊ីន FFmpeg។',
-  'Choose files': 'ជ្រើសរើសឯកសារ', 'Output format': 'ទម្រង់លទ្ធផល', 'Start conversion': 'ចាប់ផ្ដើមបម្លែង', 'No files selected': 'មិនទាន់ជ្រើសរើសឯកសារ', 'Conversion jobs': 'ការងារបម្លែង', Source: 'ប្រភព', Progress: 'វឌ្ឍនភាព', Status: 'ស្ថានភាព', Actions: 'សកម្មភាព',
-  'Creator studio': 'ស្ទូឌីយោអ្នកបង្កើត', 'Save settings': 'រក្សាទុកការកំណត់', 'Download performance': 'ប្រសិទ្ធភាពទាញយក', 'Site authentication': 'ការផ្ទៀងផ្ទាត់គេហទំព័រ', Appearance: 'រូបរាង', 'Browser extension': 'ផ្នែកបន្ថែមកម្មវិធីរុករក',
-  'About CPS Universal Downloader': 'អំពី CPS Universal Downloader', 'A modern portable media workflow': 'ឧបករណ៍មេឌៀទំនើប និងចល័ត', 'Made by Chuob Piseth': 'បង្កើតដោយ Chuob Piseth', 'Private local workflow': 'ដំណើរការឯកជនក្នុងម៉ាស៊ីន',
-  'Open download folder': 'បើកថតទាញយក', 'Select all': 'ជ្រើសទាំងអស់', 'Deselect all': 'ដោះជម្រើសទាំងអស់', Copy: 'ចម្លង', Send: 'ផ្ញើ', Browse: 'ស្វែងរក', Cancel: 'បោះបង់', Remove: 'លុប'
-  , System: 'តាមប្រព័ន្ធ', Light: 'ភ្លឺ', Dark: 'ងងឹត', 'Liquid Glass': 'កញ្ចក់ថ្លា', 'Download folder': 'ថតទាញយក', 'Parallel downloads': 'ការទាញយកស្របគ្នា', 'Fragments per download': 'ផ្នែកក្នុងមួយការទាញយក', 'Filename template': 'ទម្រង់ឈ្មោះឯកសារ', 'Prevent duplicate downloads': 'ការពារការទាញយកស្ទួន', 'Use browser cookies': 'ប្រើខូគីកម្មវិធីរុករក', 'AI provider and model': 'អ្នកផ្តល់ AI និងម៉ូដែល', 'Download enhancements': 'មុខងារបន្ថែមការទាញយក', 'Authentication test': 'សាកល្បងការផ្ទៀងផ្ទាត់', 'Export extension': 'នាំចេញផ្នែកបន្ថែម', 'Test connection': 'សាកល្បងការតភ្ជាប់'
+  'Private local workflow': 'ដំណើរការឯកជនក្នុងម៉ាស៊ីន', 'Made by Chuob Piseth': 'បង្កើតដោយ Chuob Piseth', 'Starting CPS Universal Downloader…': 'កំពុងចាប់ផ្ដើម CPS Universal Downloader…',
+
+  // Hero & Search
+  'Paste a link to get started': 'បិទភ្ជាប់តំណដើម្បីចាប់ផ្ដើម', 'Paste video URL, playlist, or multiple links here (YouTube, TikTok, Facebook…)': 'បិទភ្ជាប់តំណវីដេអូ បញ្ជីចាក់ ឬតំណច្រើននៅទីនេះ (YouTube, TikTok, Facebook…)',
+  'One URL, a playlist, or multiple links.': 'តំណមួយ បញ្ជីចាក់ ឬតំណច្រើន។', Paste: 'បិទភ្ជាប់', Analyze: 'វិភាគ', 'Analyze only': 'វិភាគតែប៉ុណ្ណោះ', Analyzing: 'កំពុងវិភាគ', 'Analyzing…': 'កំពុងវិភាគ…',
+  'Analyzing link and loading available videos…': 'កំពុងវិភាគតំណ និងផ្ទុកវីដេអូដែលមាន…', 'Clear link': 'សម្អាតតំណ', Ready: 'រួចរាល់', 'SharePoint + 1,000 sites': 'SharePoint + គេហទំព័រ ១០០០+',
+
+  // Controls & Presets
+  'Download settings': 'ការកំណត់ទាញយក', Type: 'ប្រភេទ', Video: 'វីដេអូ', Audio: 'សំឡេង', Quality: 'គុណភាព', Format: 'ទម្រង់', 'Clip start': 'ចាប់ផ្ដើមកាត់', 'Clip end': 'បញ្ចប់កាត់', 'Full video': 'វីដេអូពេញ',
+  'Quick presets': 'ការកំណត់រហ័ស', 'Download now': 'ទាញយកឥឡូវ', Download: 'ទាញយក', Working: 'កំពុងដំណើរការ', 'Working…': 'កំពុងដំណើរការ…', Best: 'ល្អបំផុត', Small: 'ទំហំតូច', 'Saving to': 'រក្សាទុកទៅ', Change: 'ប្ដូរថត', 'Change folder': 'ប្ដូរថត', 'Change destination folder': 'ប្ដូរថតគោលដៅ', 'Open folder': 'បើកថត', 'Open download folder': 'បើកថតទាញយក',
+  'Analyze only previews media. Downloads start only after you select videos and click this button.': 'ការវិភាគគ្រាន់តែបង្ហាញទិដ្ឋភាពជាមុនប៉ុណ្ណោះ។ ការទាញយកនឹងចាប់ផ្ដើមលុះត្រាតែអ្នកជ្រើសរើសវីដេអូ ហើយចុចប៊ូតុងនេះ។',
+
+  // Format Inspector
+  'Format inspector': 'ឧបករណ៍ពិនិត្យទម្រង់មេឌៀ', 'Choose an exact media stream below or keep automatic Best quality.': 'ជ្រើសរើសខ្សែទិន្នន័យជាក់លាក់ខាងក្រោម ឬរក្សាទុកគុណភាពល្អបំផុតដោយស្វ័យប្រវត្តិ។',
+  '✓ Automatic Best (Active)': '✓ គុណភាពល្អបំផុតស្វ័យប្រវត្តិ (សកម្ម)', 'Reset to Automatic Best': 'កំណត់ទៅគុណភាពល្អបំផុតស្វ័យប្រវត្តិ',
+  'All Streams': 'ខ្សែទិន្នន័យទាំងអស់', 'Video + Audio': 'វីដេអូ + សំឡេង', 'Video Only': 'វីដេអូតែប៉ុណ្ណោះ', 'Audio Only': 'សំឡេងតែប៉ុណ្ណោះ', Select: 'ជ្រើសរើស', Selected: 'បានជ្រើស',
+  'Direct stream format selected': 'បានជ្រើសរើសទម្រង់ខ្សែទិន្នន័យដោយផ្ទាល់',
+
+  // Media Card & Actions
+  'View Full': 'មើលរូបពេញ', 'View full-size': 'មើលរូបភាពពេញ', 'Save Thumbnail': 'រក្សាទុករូបតំណាង', 'Saving…': 'កំពុងរក្សាទុក…',
+  'Download thumbnail image to your computer': 'ទាញយករូបភាពតំណាងទៅកាន់កុំព្យូទ័ររបស់អ្នក', 'Quick summary': 'សង្ខេបរហ័ស', 'Summarizing…': 'កំពុងសង្ខេប…',
+  'Deep video analysis': 'ការវិភាគវីដេអូស៊ីជម្រៅ', 'Analyzing deeply…': 'កំពុងវិភាគស៊ីជម្រៅ…', 'Thumbnail review': 'ការពិនិត្យរូបតំណាង', 'Reviewing thumbnail…': 'កំពុងពិនិត្យរូបតំណាង…',
+  'Thumbnail prompt': 'Prompt រូបតំណាង', 'Generating prompt…': 'កំពុងបង្កើត Prompt…', 'Copy result': 'ចម្លងលទ្ធផល', 'AI result copied': 'បានចម្លងលទ្ធផល AI',
+  'Generated with your selected AI provider and model.': 'បានបង្កើតជាមួយអ្នកផ្ដល់ AI និងម៉ូដែលដែលអ្នកបានជ្រើសរើស។',
+
+  // Playlist & Selection
+  'Playlist videos': 'វីដេអូក្នុងបញ្ជីចាក់', 'Select all': 'ជ្រើសទាំងអស់', 'Deselect all': 'ដោះជម្រើសទាំងអស់', Clear: 'សម្អាត', selected: 'បានជ្រើសរើស', 'Download selected': 'ទាញយកដែលបានជ្រើស',
+  'selected · click any video to select or deselect it': 'បានជ្រើសរើស · ចុចលើវីដេអូដើម្បីជ្រើស ឬដោះជម្រើស',
+
+  // Downloads & Queue Pages & Tables
+  'Follow current transfers or reopen completed files': 'តាមដានការផ្ទេរបច្ចុប្បន្ន ឬបើកឯកសារដែលបានបញ្ចប់', 'Current downloading': 'កំពុងទាញយកបច្ចុប្បន្ន', Downloaded: 'បានទាញយករួច', 'Downloaded files': 'ឯកសារដែលបានទាញយក',
+  'Parallel, resumable transfers with live processing states': 'ទាញយកស្របគ្នា អាចបន្តឡើងវិញបាន ជាមួយស្ថានភាពផ្ទាល់', 'Clear stopped/errors': 'សម្អាតដែលបានបញ្ឈប់/កំហុស', 'Stop all': 'បញ្ឈប់ទាំងអស់',
+  'Nothing downloading': 'មិនមានអ្វីកំពុងទាញយកទេ', 'Start a download from Home or the Queue.': 'ចាប់ផ្ដើមការទាញយកពីទំព័រដើម ឬពីជួររង់ចាំ។', 'No downloads yet': 'មិនទាន់មានការទាញយកនៅឡើយទេ', 'Completed files will appear here.': 'ឯកសារដែលបានបញ្ចប់នឹងបង្ហាញនៅទីនេះ។',
+  'Select items, adjust priority, and recover failed transfers': 'ជ្រើសរើសធាតុ កែតម្រូវអាទិភាព និងស្ដារការផ្ទេរដែលបរាជ័យ', 'Recover all failed': 'ស្ដារដែលបរាជ័យទាំងអស់', 'Remove completed': 'លុបដែលបានបញ្ចប់', 'Queue is clear': 'ជួររង់ចាំគឺទទេស្អាត', 'Paste multiple links or add a playlist from Home.': 'បិទភ្ជាប់តំណច្រើន ឬបន្ថែមបញ្ជីចាក់ពីទំព័រដើម។', Low: 'ទាប', Normal: 'ធម្មតា', High: 'ខ្ពស់', Priority: 'អាទិភាព', Speed: 'ល្បឿន', ETA: 'ពេលវេលានៅសល់', Platform: 'ប្រភព', Time: 'ពេលវេលា', Level: 'កម្រិត', Event: 'ព្រឹត្តិការណ៍', Item: 'ធាតុ', Message: 'សារ', File: 'ឯកសារ', Completed: 'បានបញ្ចប់', 'completed items': 'ធាតុដែលបានបញ្ចប់',
+  'Resume with the same settings': 'បន្តឡើងវិញដោយប្រើការកំណត់ដដែល', 'Retry with automatic best format': 'ព្យាយាមឡើងវិញដោយគុណភាពល្អបំផុត', 'Safe retry at 720p': 'ព្យាយាមឡើងវិញប្រកបដោយសុវត្ថិភាពនៅ 720p', 'Remove this download': 'លុបការទាញយកនេះ', 'Show downloaded file in folder': 'បង្ហាញឯកសារដែលបានទាញយកក្នុងថត', 'Show converted file in folder': 'បង្ហាញឯកសារដែលបានបម្លែងក្នុងថត',
+  Failed: 'បរាជ័យ', Cancelled: 'បានបោះបង់', Paused: 'បានផ្អាក', Waiting: 'កំពុងរង់ចាំ', Downloading: 'កំពុងទាញយក', Processing: 'កំពុងដំណើរការ',
+
+  // History Page
+  'Completed files and a persistent diagnostic log': 'ឯកសារដែលបានបញ្ចប់ និងកំណត់ហេតុវិនិច្ឆ័យ', 'Download history': 'ប្រវត្តិទាញយក', 'Activity log': 'កំណត់ហេតុសកម្មភាព', 'Completed downloads': 'ការទាញយកដែលបានបញ្ចប់',
+  'Saved across app restarts with the exact final file path.': 'រក្សាទុកទោះបីជាបិទបើកកម្មវិធី ជាមួយទីតាំងឯកសារច្បាស់លាស់។', 'Clear history': 'សម្អាតប្រវត្តិ', 'Clear log': 'សម្អាតកំណត់ហេតុ', 'No history yet': 'មិនទាន់មានប្រវត្តិនៅឡើយទេ',
+  'Successfully completed downloads will appear here.': 'ការទាញយកដែលបានបញ្ចប់ដោយជោគជ័យនឹងបង្ហាញនៅទីនេះ។', 'No activity yet': 'មិនទាន់មានសកម្មភាពនៅឡើយទេ', 'New actions and diagnostics will be recorded here.': 'សកម្មភាពថ្មីៗ និងការវិភាគនឹងត្រូវបានកត់ត្រានៅទីនេះ។',
+  'Analysis, queue, download, completion, cancellation, and error events.': 'ព្រឹត្តិការណ៍វិភាគ ជួររង់ចាំ ទាញយក បញ្ចប់ បោះបង់ និងកំហុស។',
+
+  // Converter Page
+  'Convert video, audio, and images locally with the bundled FFmpeg engine.': 'បម្លែងវីដេអូ សំឡេង និងរូបភាពក្នុងកុំព្យូទ័រដោយម៉ាស៊ីន FFmpeg។', 'Choose files': 'ជ្រើសរើសឯកសារ', 'Output format': 'ទម្រង់លទ្ធផល', 'Start conversion': 'ចាប់ផ្ដើមបម្លែង', 'No files selected': 'មិនទាន់ជ្រើសរើសឯកសារ', 'Choose one or more files from your computer.': 'ជ្រើសរើសឯកសារមួយ ឬច្រើនពីកុំព្យូទ័ររបស់អ្នក។', 'Save converted files to': 'រក្សាទុកឯកសារដែលបានបម្លែងទៅ', 'Existing files are never overwritten.': 'ឯកសារដែលមានស្រាប់នឹងមិនត្រូវបានសរសេរជាន់លើឡើយ។', 'Conversion jobs': 'ការងារបម្លែង', 'No conversion jobs': 'មិនមានការងារបម្លែងទេ', 'Choose local files and select an output format to begin.': 'ជ្រើសរើសឯកសារក្នុងម៉ាស៊ីន និងជ្រើសរើសទម្រង់លទ្ធផលដើម្បីចាប់ផ្ដើម។', Source: 'ប្រភព', Progress: 'វឌ្ឍនភាព', Status: 'ស្ថានភាព', Actions: 'សកម្មភាព', 'Output file': 'ឯកសារលទ្ធផល', files: 'ឯកសារ',
+  'MOV, HEIC, MP4, MKV, audio, and image files are supported when their codec is available in FFmpeg.': 'គាំទ្រឯកសារ MOV, HEIC, MP4, MKV, សំឡេង និងរូបភាព នៅពេលកូដិកមានក្នុង FFmpeg។',
+
+  // Studio Page
+  'Creator studio': 'ស្ទូឌីយោអ្នកបង្កើត', 'Khmer Subtitle Studio': 'ស្ទូឌីយោចំណងជើងរងខ្មែរ', 'Load, edit, translate, export, or burn subtitles into a local video.': 'ផ្ទុក កែសម្រួល បកប្រែ នាំចេញ ឬដុតបញ្ចូលចំណងជើងរងទៅក្នុងវីដេអូ។', 'Load from video': 'ផ្ទុកពីវីដេអូ', 'Save SRT': 'រក្សាទុក SRT', 'Source track': 'ខ្សែសំឡេងប្រភព', 'Translate to': 'បកប្រែទៅជា', 'Keep original + translation': 'រក្សាទុកដើម + ការបកប្រែ (ពីរបន្ទាត់)', 'Translate subtitles': 'បកប្រែចំណងជើងរង', 'Burn subtitles into MP4': 'ដុតបញ្ចូលចំណងជើងរងទៅក្នុង MP4', 'Choose video': 'ជ្រើសរើសវីដេអូ', 'Complete Creator Pack': 'កញ្ចប់អ្នកបង្កើតមាតិកាពេញលេញ', 'Summary, chapters, titles, description, captions, hashtags, and a thumbnail prompt.': 'សង្ខេប, ជំពូក, ចំណងជើង, ការពិពណ៌នា, ចំណងជើងរង, hashtags និង prompt រូបតំណាង។', 'Generate complete package': 'បង្កើតកញ្ចប់ពេញលេញ', 'Detected chapters': 'ជំពូកដែលបានរកឃើញ', 'Export Markdown': 'នាំចេញជា Markdown', 'Save the current Home workflow': 'រក្សាទុកលំហូរការងារទំព័រដើមបច្ចុប្បន្ន', 'Save recipe': 'រក្សាទុករូបមន្ត', 'Apply on Home': 'អនុវត្តលើទំព័រដើម', Clips: 'វីដេអូខ្លី', Subtitles: 'ចំណងជើងរង', 'Creator Pack': 'កញ្ចប់អ្នកបង្កើត', Recipes: 'រូបមន្ត', 'AI Skills': 'ជំនាញ AI', 'Turn one video into clips, subtitles, creator assets, and reusable workflows': 'បម្លែងវីដេអូទៅជាឃ្លីបខ្លី ចំណងជើងរង ទ្រព្យអ្នកបង្កើត និងរូបមន្តប្រើឡើងវិញ',
+
+  // Settings Page
+  'Performance, browser connection, AI, and appearance': 'ប្រសិទ្ធភាព ការតភ្ជាប់កម្មវិធីរុករក AI និងរូបរាង', 'Download performance': 'ប្រសិទ្ធភាពទាញយក', 'Download folder': 'ថតទាញយក', 'Converted files folder': 'ថតឯកសារបម្លែង', 'Choose or paste download folder': 'ជ្រើសរើស ឬបិទភ្ជាប់ថតទាញយក', 'Choose or paste converted files folder': 'ជ្រើសរើស ឬបិទភ្ជាប់ថតឯកសារបម្លែង', 'Parallel downloads': 'ការទាញយកស្របគ្នា', 'Fragments per download': 'ផ្នែកក្នុងមួយការទាញយក', 'Download and converted files can use different folders. Choose both locations before saving settings.': 'ការទាញយក និងឯកសារបម្លែងអាចប្រើថតផ្សេងគ្នាបាន។ សូមជ្រើសរើសទីតាំងទាំងពីរមុនពេលរក្សាទុក។', 'Filename template': 'ទម្រង់ឈ្មោះឯកសារ', 'Prevent duplicate downloads': 'ការពារការទាញយកស្ទួន', 'Site authentication': 'ការផ្ទៀងផ្ទាត់គេហទំព័រ', 'Facebook, TikTok, Douyin, and authorized SharePoint links may need cookies from a browser where you are signed in. Close that browser first if its cookie database is locked. Owner-blocked downloads remain unavailable.': 'តំណ Facebook, TikTok, Douyin និង SharePoint ដែលមានការអនុញ្ញាត អាចត្រូវការខូគីពីកម្មវិធីរុករកដែលអ្នកបានចូលគណនីរួច។ សូមបិទកម្មវិធីរុករកនោះជាមុន ប្រសិនបើទិន្នន័យខូគីជាប់សោ។ ការទាញយកដែលម្ចាស់ហាមឃាត់មិនអាចទាញយកបានឡើយ។', 'Use browser cookies': 'ប្រើខូគីកម្មវិធីរុករក', Appearance: 'រូបរាង', System: 'តាមប្រព័ន្ធ', Light: 'ភ្លឺ', Dark: 'ងងឹត', 'Liquid Glass': 'កញ្ចក់ថ្លា', 'Application updates': 'ការអាប់ដេតកម្មវិធី', 'Automatically checks verified releases from GitHub and restarts after installation.': 'ពិនិត្យមើលកំណែថ្មីដែលបានបញ្ជាក់ពី GitHub ដោយស្វ័យប្រវត្តិ និងចាប់ផ្ដើមឡើងវិញក្រោយដំឡើង។', 'Check for updates': 'ពិនិត្យមើលការអាប់ដេត', 'Release update service': 'សេវាកម្មអាប់ដេតកំណែថ្មី', 'You have the latest version': 'អ្នកកំពុងប្រើប្រាស់កំណែចុងក្រោយបំផុតហើយ', 'Browser extension': 'ផ្នែកបន្ថែមកម្មវិធីរុករក', 'Authenticated local connection for the YouTube, TikTok, Facebook, and web video button.': 'ការតភ្ជាប់ក្នុងម៉ាស៊ីនប្រកបដោយសុវត្ថិភាពសម្រាប់ប៊ូតុងទាញយកលើ YouTube, TikTok, Facebook និងវិបសាយនានា។', 'Test connection': 'សាកល្បងការតភ្ជាប់', 'Export extension': 'នាំចេញផ្នែកបន្ថែម', 'Local endpoint': 'ចំណុចតភ្ជាប់ក្នុងម៉ាស៊ីន', 'Connection token': 'កូដតភ្ជាប់ Token', Connected: 'បានភ្ជាប់', 'Not tested': 'មិនទាន់សាកល្បង', 'AI provider and model': 'អ្នកផ្តល់ AI និងម៉ូដែល', 'Choose your preferred AI intelligence engine. Supports Google Gemini, Groq Cloud, OpenRouter, CodeCraft, and Inception Labs.': 'ជ្រើសរើសម៉ាស៊ីនបញ្ញាសិប្បនិម្មិត AI ដែលអ្នកពេញចិត្ត។ គាំទ្រ Google Gemini, Groq Cloud, OpenRouter, CodeCraft និង Inception Labs។', 'Download enhancements': 'មុខងារបន្ថែមការទាញយក', 'Apply subtitles, SponsorBlock segments, or chapter splitting to new jobs.': 'អនុវត្តចំណងជើងរង ការកាត់ផ្នែកផ្សាយពាណិជ្ជកម្ម SponsorBlock ឬពុះចែកជំពូក។', 'Subtitle language': 'ភាសាចំណងជើងរង', 'Embed subtitles': 'បង្កប់ចំណងជើងរងក្នុងវីដេអូ', 'Remove SponsorBlock segments': 'ដកចេញផ្នែកផ្សាយពាណិជ្ជកម្ម SponsorBlock', 'Split files by chapters': 'ពុះចែកឯកសារតាមជំពូក', 'Authentication test': 'សាកល្បងការផ្ទៀងផ្ទាត់', 'Verify that the selected browser session can access Facebook, TikTok, Douyin, SharePoint, or another signed-in video.': 'ផ្ទៀងផ្ទាត់ថាសម័យកម្មវិធីរុករកដែលបានជ្រើស អាចចូលមើលវីដេអូ Facebook, TikTok, Douyin, SharePoint ឬវីដេអូដែលត្រូវការ Login ផ្សេងទៀត។', 'Test access': 'សាកល្បងចូលមើល', 'Save settings': 'រក្សាទុកការកំណត់', 'Checking…': 'កំពុងពិនិត្យ…', 'Connecting…': 'កំពុងតភ្ជាប់…', 'Check local model': 'ពិនិត្យម៉ូដែលក្នុងម៉ាស៊ីន', 'Test & load models': 'សាកល្បង & ផ្ទុកម៉ូដែល', 'Automatically try another configured provider when the default fails': 'ព្យាយាមប្រើអ្នកផ្ដល់សេវាផ្សេងទៀតដោយស្វ័យប្រវត្តិ នៅពេលលំនាំដើមបរាជ័យ', 'Add Gemini API key': 'បន្ថែមសោ API Gemini', 'Add key': 'បន្ថែមសោ', 'Remove key': 'លុបសោ', 'Gemini model': 'ម៉ូដែល Gemini', 'Paste a signed-in video URL': 'បិទភ្ជាប់តំណវីដេអូដែលបានចូលគណនី', 'API base URL': 'URL មូលដ្ឋាន API', 'API key (optional for local APIs)': 'សោ API (ជាជម្រើសសម្រាប់ API ក្នុងម៉ាស៊ីន)', Model: 'ម៉ូដែល', 'Load available models': 'ផ្ទុកម៉ូដែលដែលមាន',
+
+  // AI Page
+  'Realtime conversation with optional transcript-grounded answers': 'ការសន្ទនាផ្ទាល់ជាមួយចម្លើយផ្អែកលើអត្ថបទវីដេអូ', 'Video context': 'បរិបទវីដេអូ', 'Attach a public video URL': 'ភ្ជាប់តំណវីដេអូសាធារណៈ', 'Use current': 'ប្រើវីដេអូបច្ចុប្បន្ន', 'Ground answers in the video transcript and cite timestamps': 'ផ្អែកលើអត្ថបទវីដេអូ និងបញ្ជាក់ពេលវេលា', 'Ask about the video, request a script, title ideas, or thumbnail prompt…': 'សួរអំពីវីដេអូ ស្នើសុំស្គ្រីប គំនិតចំណងជើង ឬរូបភាពតំណាង…', 'Creative workflows': 'លំហូរការងារច្នៃប្រឌិត', 'Video summary': 'សង្ខេបវីដេអូ', 'Deep analysis': 'ការវិភាគស៊ីជម្រៅ', 'Script writer': 'អ្នកសរសេរស្គ្រីប',
+
+  // About Page
+  'Free, open source, and privacy-focused media workspace': 'កន្លែងការងារមេឌៀឥតគិតថ្លៃ ប្រភពបើកចំហ និងផ្តោតលើភាពឯកជន',
+  '100% Free & Open Source • MIT License': 'ឥតគិតថ្លៃ ១០០% & កូដចំហ • អាជ្ញាប័ណ្ណ MIT',
+  Version: 'កំណែ', 'Active Engine': 'ម៉ាស៊ីនដំណើរការ', 'Portable Edition': 'កំណែចល័ត',
+  'A lightning-fast, privacy-first desktop workspace to download media from YouTube, TikTok, Facebook, Douyin, SharePoint, and 1,000+ platforms. Features native FFmpeg media conversion, multi-provider AI assistance (Groq Cloud, OpenRouter, CodeCraft, Inception Labs, Google Gemini), and zero tracking.': 'កន្លែងការងារលើកុំព្យូទ័រដែលមានល្បឿនលឿន និងរក្សាការសម្ងាត់ខ្ពស់ សម្រាប់ទាញយកមេឌៀពី YouTube, TikTok, Facebook, Douyin, SharePoint និងគេហទំព័រជាង ១០០០+ ផ្សេងទៀត។ មានភ្ជាប់មកជាមួយនូវម៉ាស៊ីនបម្លែង FFmpeg, ជំនួយការ AI ច្រើនប្រភព (Groq Cloud, OpenRouter, CodeCraft, Inception Labs, Google Gemini) និងគ្មានការតាមដានទិន្នន័យឡើយ។',
+  'Turbo Concurrent Engine': 'ម៉ាស៊ីនទាញយកល្បឿនលឿន Turbo',
+  'Resumable multi-threaded fragments, 64K buffer, and intelligent quality fallback.': 'ទាញយកជាផ្នែកស្របគ្នា អាចបន្តការទាញយកឡើងវិញ បណ្ដុំទិន្នន័យ 64K និងប្ដូរគុណភាពវៃឆ្លាតស្វ័យប្រវត្តិ។',
+  'Native Media Converter': 'កម្មវិធីបម្លែងមេឌៀផ្ទាល់ក្នុងម៉ាស៊ីន',
+  'Lossless FFmpeg conversion for MP4, MKV, MP3, WAV, FLAC, HEIC, and GIFs.': 'បម្លែងឯកសារមិនបាត់បង់គុណភាពជាមួយ FFmpeg សម្រាប់ MP4, MKV, MP3, WAV, FLAC, HEIC និង GIF។',
+  'Multi-Provider AI Intelligence': 'បញ្ញាសិប្បនិម្មិត AI ច្រើនប្រភព',
+  'Groq (7K free/d), OpenRouter (Free Vision), Inception Labs (Mercury dLLM), CodeCraft (1M/mo), and Google Gemini.': 'Groq (៧០០០ សំណើឥតគិតថ្លៃ/ថ្ងៃ), OpenRouter (Vision ឥតគិតថ្លៃ), Inception Labs (Mercury dLLM), CodeCraft (១លាន token/ខែ) និង Google Gemini។',
+  'Private & Secure': 'ឯកជនភាព និងសុវត្ថិភាពខ្ពស់',
+  'Zero telemetry. All keys encrypted with Windows DPAPI. Runs completely offline.': 'គ្មានការប្រមូលទិន្នន័យឡើយ។ កូដសម្ងាត់ទាំងអស់ត្រូវបានអ៊ិនគ្រីបដោយ Windows DPAPI។ ដំណើរការដោយសុវត្ថិភាព។',
+  'GitHub Open Source Project': 'គម្រោងកូដចំហលើ GitHub',
+  'This project is open-source under the MIT license. You can inspect the complete source code, download portable builds, submit feature suggestions, or contribute improvements.': 'គម្រោងនេះជាកម្មវិធីកូដចំហក្រោមអាជ្ញាប័ណ្ណ MIT។ អ្នកអាចពិនិត្យមើលកូដប្រភពទាំងស្រុង ទាញយកកំណែចល័ត ផ្ដល់យោបល់ ឬចូលរួមអភិវឌ្ឍន៍បន្ថែម។',
+  'View Repository': 'មើលកូដប្រភព Repository', 'Releases & Notes': 'កំណែចេញផ្សាយ & កំណត់ចំណាំ', Releases: 'កំណែចេញផ្សាយ',
+  'Support Our Work • Buy Me a Coffee': 'គាំទ្រការងាររបស់យើង • ឧបត្ថម្ភកាហ្វេមួយកែវ', '100% Free Software • Community Supported': 'សូហ្វវែរឥតគិតថ្លៃ ១០០% • គាំទ្រដោយសហគមន៍',
+  'CPS Universal Downloader is free for everyone. If it saves you time and effort, you can support our ongoing development and buy me a coffee via ABA KHQR:': 'CPS Universal Downloader គឺឥតគិតថ្លៃសម្រាប់មនុស្សគ្រប់គ្នា។ ប្រសិនបើកម្មវិធីនេះជួយសម្រួលការងារ និងពេលវេលារបស់អ្នក អ្នកអាចគាំទ្រការអភិវឌ្ឍន៍បន្តរបស់យើងដោយការឧបត្ថម្ភកាហ្វេតាមរយៈ ABA KHQR៖',
+  'Scan with ABA Mobile, Bakong, or any bank app': 'ស្កេនជាមួយ ABA Mobile, បាគង (Bakong) ឬកម្មវិធីធនាគារណាមួយ',
+  'Download and convert only content that you own or have permission to use.': 'សូមទាញយក និងបម្លែងតែមាតិកាដែលជាកម្មសិទ្ធិរបស់អ្នក ឬទទួលបានការអនុញ្ញាតប៉ុណ្ណោះ។',
+
+  // Common Verbs & UI Tokens
+  Copy: 'ចម្លង', Send: 'ផ្ញើ', Browse: 'ស្វែងរក', Cancel: 'បោះបង់', Remove: 'លុប', Close: 'បិទ', Resume: 'បន្តឡើងវិញ', Retry: 'ព្យាយាមឡើងវិញ',
+  'Copy Link': 'ចម្លងតំណ', 'Download Thumbnail': 'ទាញយករូបតំណាង', 'Thumbnail link copied': 'បានចម្លងតំណរូបភាពតំណាង',
+  'Update Now': 'អាប់ដេតឥឡូវនេះ', Available: 'មានកំណែថ្មី', 'New Version Available:': 'មានកំណែថ្មី៖',
+  'is ready to install!': 'រួចរាល់សម្រាប់ការដំឡើង!'
 }
 
 function PlatformLogo({ name, label }) {
@@ -435,7 +509,7 @@ function App() {
           {updateStatus?.available && (
             <button className="topbar-update-alert" onClick={() => setPage('Settings')} title={`Version ${updateStatus.latestVersion} available`}>
               <Sparkles size={14} className="sparkle-pulse" />
-              <span>v{updateStatus.latestVersion} Available</span>
+              <span>v{updateStatus.latestVersion} {t('Available')}</span>
             </button>
           )}
           <div className="select-shell language-select"><img className="language-flag" src={settingsDraft.language === 'Khmer' ? './flags/cambodia.svg' : './flags/us.svg'} alt=""/><select aria-label="Language" value={settingsDraft.language} onChange={event => setPreference('language', event.target.value)}><option value="English">English</option><option value="Khmer">ខ្មែរ</option></select></div><div className="select-shell">{theme === 'Dark' ? <Moon size={18}/> : theme === 'Liquid Glass' ? <Sparkles size={18}/> : <Sun size={18}/>}<select aria-label="Theme" value={theme} onChange={event => setPreference('theme', event.target.value)}><option value="System">{t('System')}</option><option value="Light">{t('Light')}</option><option value="Dark">{t('Dark')}</option><option value="Liquid Glass">{t('Liquid Glass')}</option></select></div>
@@ -447,10 +521,10 @@ function App() {
           <div className="update-notification-banner">
             <div className="banner-content">
               <Sparkles size={18} />
-              <span><strong>New Version Available:</strong> CPS Universal Downloader v{updateStatus.latestVersion} is ready to install!</span>
+              <span><strong>{t('New Version Available:')}</strong> CPS Universal Downloader v{updateStatus.latestVersion} {t('is ready to install!')}</span>
             </div>
             <button className="banner-action-btn" onClick={() => setPage('Settings')}>
-              Update Now
+              {t('Update Now')}
             </button>
           </div>
         )}
@@ -464,7 +538,7 @@ function App() {
                 <PlatformLogo name="youtube" label="YouTube"/>
                 <PlatformLogo name="tiktok" label="TikTok · Douyin"/>
                 <PlatformLogo name="facebook" label="Facebook"/>
-                <span className="more-platforms">SharePoint + 1,000 sites</span>
+                <span className="more-platforms">{t('SharePoint + 1,000 sites')}</span>
               </div>
 
               <div className="hero-search-box">
@@ -476,23 +550,23 @@ function App() {
                       value={url}
                       onChange={event => setUrl(event.target.value)}
                       onKeyDown={event => { if (event.key === 'Enter') analyze() }}
-                      placeholder="Paste video URL, playlist, or multiple links here (YouTube, TikTok, Facebook…)"
+                      placeholder={t('Paste video URL, playlist, or multiple links here (YouTube, TikTok, Facebook…)')}
                     />
                     {url && (
                       <button
                         type="button"
                         className="hero-clear-btn"
                         onClick={() => { setUrl(''); setMedia(null); setPlaylistSelection([]); setHomeAiResult(null); setStatus('Ready') }}
-                        title="Clear link"
+                        title={t('Clear link')}
                       >
                         <X size={16} />
                       </button>
                     )}
                   </div>
                   <div className="hero-search-actions">
-                    <Button icon={Clipboard} onClick={paste} className="hero-btn paste-btn">Paste</Button>
+                    <Button icon={Clipboard} onClick={paste} className="hero-btn paste-btn">{t('Paste')}</Button>
                     <Button icon={Search} variant="success" onClick={analyze} disabled={busy} className="hero-btn analyze-btn">
-                      {busy ? t('Analyzing') + '…' : 'Analyze only'}
+                      {busy ? t('Analyzing') + '…' : t('Analyze only')}
                     </Button>
                   </div>
                 </div>
@@ -535,7 +609,7 @@ function App() {
               </div>
               <div className="field-grid clip-fields">
                 <label>{t('Clip start')}<input value={startTime} onChange={event => setStartTime(event.target.value)} placeholder="00:00"/></label>
-                <label>{t('Clip end')}<input value={endTime} onChange={event => setEndTime(event.target.value)} placeholder="Full video"/></label>
+                <label>{t('Clip end')}<input value={endTime} onChange={event => setEndTime(event.target.value)} placeholder={t('Full video')}/></label>
               </div>
             </Card>
 
@@ -543,31 +617,31 @@ function App() {
               <div className="card-title compact">
                 <div>
                   <span className="section-icon orange"><FontAwesomeIcon icon={faBolt}/></span>
-                  <h2>Quick presets</h2>
+                  <h2>{t('Quick presets')}</h2>
                 </div>
               </div>
               <Button icon={Download} variant="primary" className="home-download-button" onClick={downloadNow} disabled={busy || (!media && !url) || Boolean(media?.entries?.length && playlistSelection.length === 0)}>
-                {busy ? 'Working…' : media?.entries?.length ? `Download ${playlistSelection.length} selected` : 'Download now'}
+                {busy ? t('Working…') : media?.entries?.length ? `${t('Download')} ${playlistSelection.length} ${t('selected')}` : t('Download now')}
               </Button>
               <div className="preset-grid">
-                <button onClick={() => { setKind('Video'); setQuality('Best'); setFormat('MP4') }}><Sparkles/> Best</button>
+                <button onClick={() => { setKind('Video'); setQuality('Best'); setFormat('MP4') }}><Sparkles/> {t('Best')}</button>
                 <button onClick={() => { setKind('Video'); setQuality('1080p'); setFormat('MP4') }}><Zap/> 1080p</button>
-                <button onClick={() => { setKind('Video'); setQuality('720p'); setFormat('MP4') }}><Gauge/> Small</button>
+                <button onClick={() => { setKind('Video'); setQuality('720p'); setFormat('MP4') }}><Gauge/> {t('Small')}</button>
                 <button onClick={() => { setKind('Audio'); setFormat('MP3') }}><FontAwesomeIcon icon={faMusic}/> MP3</button>
               </div>
-              <p className="analyze-safety">Analyze only previews media. Downloads start only after you select videos and click this button.</p>
+              <p className="analyze-safety">{t('Analyze only previews media. Downloads start only after you select videos and click this button.')}</p>
               <div className="save-location">
-                <span>Saving to</span>
+                <span>{t('Saving to')}</span>
                 <strong title={settingsDraft.saveLocation}>{settingsDraft.saveLocation}</strong>
                 <div className="save-location-btns">
-                  <button type="button" className="save-change-folder-btn" onClick={browse} title="Change destination folder">Change</button>
-                  <IconButton onClick={() => api.open_download_folder()} title="Open download folder"><FolderOpen/></IconButton>
+                  <button type="button" className="save-change-folder-btn" onClick={browse} title={t('Change destination folder')}>{t('Change')}</button>
+                  <IconButton onClick={() => api.open_download_folder()} title={t('Open download folder')}><FolderOpen/></IconButton>
                 </div>
               </div>
             </Card>
           </div>
 
-          {media && <Card className="media-card"><div className="media-preview"><div className="thumb-container"><div className="thumb-wrap clickable" onClick={() => media.thumbnail && setViewingThumbnail(media.thumbnail)} title="Click to view full-size thumbnail">{media.thumbnail ? <img src={media.thumbnail} alt={media.title}/> : <FileVideo size={48}/>}{media.thumbnail && <div className="thumb-hover-overlay"><Eye size={22}/><span>View Full</span></div>}<div className="play-circle"><Play fill="currentColor"/></div></div>{media.thumbnail && <div className="thumb-actions-bar"><button type="button" className="thumb-btn view-btn" onClick={() => setViewingThumbnail(media.thumbnail)} title="View full-size"><Eye size={13}/> View Full</button><button type="button" className="thumb-btn download-btn" onClick={() => saveThumbnailNow(media.thumbnail, media.title)} disabled={downloadingThumb} title="Download thumbnail image to your computer"><Download size={13}/> {downloadingThumb ? 'Saving…' : 'Save Thumbnail'}</button></div>}</div><div className="media-info"><div className="media-kicker">{media.platform}</div><h2>{media.title}</h2><p className="creator">{media.creator}</p><div className="meta"><span><Clock3/> {duration(media.duration)}</span><span><Activity/> {compactNumber(media.views)} views</span>{media.entries.length > 0 && <span><ListChecks/> {media.entries.length} videos</span>}<span><Captions/> {media.subtitles?.length || 0} subtitle tracks</span><span><ListVideo/> {media.chapters?.length || 0} chapters</span></div><p className="description">{media.description}</p><div className="media-ai-actions"><Button icon={MessageCircle} onClick={() => runHomeAiSkill('summary')} disabled={Boolean(homeAiBusy)}>{homeAiBusy === 'summary' ? 'Summarizing…' : 'Quick summary'}</Button><Button icon={BrainCircuit} variant="primary" onClick={() => runHomeAiSkill('deep')} disabled={Boolean(homeAiBusy)}>{homeAiBusy === 'deep' ? 'Analyzing deeply…' : 'Deep video analysis'}</Button><Button icon={ImageIcon} onClick={() => runHomeAiSkill('thumbnail-review')} disabled={Boolean(homeAiBusy) || !media.thumbnail}>{homeAiBusy === 'thumbnail-review' ? 'Reviewing thumbnail…' : 'Thumbnail review'}</Button><Button icon={WandSparkles} onClick={() => runHomeAiSkill('thumbnail-prompt')} disabled={Boolean(homeAiBusy) || !media.thumbnail}>{homeAiBusy === 'thumbnail-prompt' ? 'Generating prompt…' : 'Thumbnail prompt'}</Button></div></div></div></Card>}
+          {media && <Card className="media-card"><div className="media-preview"><div className="thumb-container"><div className="thumb-wrap clickable" onClick={() => media.thumbnail && setViewingThumbnail(media.thumbnail)} title="Click to view full-size thumbnail">{media.thumbnail ? <img src={media.thumbnail} alt={media.title}/> : <FileVideo size={48}/>}{media.thumbnail && <div className="thumb-hover-overlay"><Eye size={22}/><span>{t('View Full')}</span></div>}<div className="play-circle"><Play fill="currentColor"/></div></div>{media.thumbnail && <div className="thumb-actions-bar"><button type="button" className="thumb-btn view-btn" onClick={() => setViewingThumbnail(media.thumbnail)} title={t('View full-size')}><Eye size={13}/> {t('View Full')}</button><button type="button" className="thumb-btn download-btn" onClick={() => saveThumbnailNow(media.thumbnail, media.title)} disabled={downloadingThumb} title={t('Download thumbnail image to your computer')}><Download size={13}/> {downloadingThumb ? t('Saving…') : t('Save Thumbnail')}</button></div>}</div><div className="media-info"><div className="media-kicker">{media.platform}</div><h2>{media.title}</h2><p className="creator">{media.creator}</p><div className="meta"><span><Clock3/> {duration(media.duration)}</span><span><Activity/> {compactNumber(media.views)} views</span>{media.entries.length > 0 && <span><ListChecks/> {media.entries.length} videos</span>}<span><Captions/> {media.subtitles?.length || 0} subtitle tracks</span><span><ListVideo/> {media.chapters?.length || 0} chapters</span></div><p className="description">{media.description}</p><div className="media-ai-actions"><Button icon={MessageCircle} onClick={() => runHomeAiSkill('summary')} disabled={Boolean(homeAiBusy)}>{homeAiBusy === 'summary' ? t('Summarizing…') : t('Quick summary')}</Button><Button icon={BrainCircuit} variant="primary" onClick={() => runHomeAiSkill('deep')} disabled={Boolean(homeAiBusy)}>{homeAiBusy === 'deep' ? t('Analyzing deeply…') : t('Deep video analysis')}</Button><Button icon={ImageIcon} onClick={() => runHomeAiSkill('thumbnail-review')} disabled={Boolean(homeAiBusy) || !media.thumbnail}>{homeAiBusy === 'thumbnail-review' ? t('Reviewing thumbnail…') : t('Thumbnail review')}</Button><Button icon={WandSparkles} onClick={() => runHomeAiSkill('thumbnail-prompt')} disabled={Boolean(homeAiBusy) || !media.thumbnail}>{homeAiBusy === 'thumbnail-prompt' ? t('Generating prompt…') : t('Thumbnail prompt')}</Button></div></div></div></Card>}
 
           {media?.formats?.length > 0 && (
             <FormatInspector
@@ -578,9 +652,9 @@ function App() {
             />
           )}
 
-          {homeAiResult && <Card className="home-ai-result"><div className="card-title"><div><span className="section-icon purple"><FontAwesomeIcon icon={faWandMagicSparkles}/></span><h2>{homeAiResult.title}</h2><p>Generated with your selected AI provider and model.</p></div><Button icon={Copy} onClick={() => { navigator.clipboard.writeText(homeAiResult.text); setToast('AI result copied') }}>Copy result</Button></div><div className="ai-result-text">{homeAiResult.text}</div></Card>}
+          {homeAiResult && <Card className="home-ai-result"><div className="card-title"><div><span className="section-icon purple"><FontAwesomeIcon icon={faWandMagicSparkles}/></span><h2>{homeAiResult.title}</h2><p>{t('Generated with your selected AI provider and model.')}</p></div><Button icon={Copy} onClick={() => { navigator.clipboard.writeText(homeAiResult.text); setToast('AI result copied') }}>{t('Copy result')}</Button></div><div className="ai-result-text">{homeAiResult.text}</div></Card>}
 
-          {media?.entries?.length > 0 && <Card className="playlist-card"><div className="card-title playlist-heading"><div><h2>Playlist videos</h2><p>{playlistSelection.length} of {media.entries.length} selected · click any video to select or deselect it</p></div><div className="button-row"><Button icon={Check} onClick={() => setPlaylistSelection(media.entries.map((_, index) => index))}>Select all</Button><Button icon={X} onClick={() => setPlaylistSelection([])}>Deselect all</Button></div></div><div className="playlist-grid">{media.entries.map((item, index) => <button key={`${item.url}-${index}`} type="button" aria-pressed={playlistSelection.includes(index)} className={`playlist-item ${playlistSelection.includes(index) ? 'selected' : ''}`} onClick={() => setPlaylistSelection(list => list.includes(index) ? list.filter(value => value !== index) : [...list, index])}><div className="playlist-thumb">{item.thumbnail ? <img src={item.thumbnail} alt=""/> : <div className="playlist-placeholder"><Play/></div>}<span className="playlist-duration">{duration(item.duration)}</span></div><div className="playlist-copy"><strong>{item.title}</strong><span>{item.platform || media.platform}</span></div><div className="check-dot">{playlistSelection.includes(index) && <Check size={14}/>}</div></button>)}</div></Card>}
+          {media?.entries?.length > 0 && <Card className="playlist-card"><div className="card-title playlist-heading"><div><h2>{t('Playlist videos')}</h2><p>{playlistSelection.length} of {media.entries.length} {t('selected · click any video to select or deselect it')}</p></div><div className="button-row"><Button icon={Check} onClick={() => setPlaylistSelection(media.entries.map((_, index) => index))}>{t('Select all')}</Button><Button icon={X} onClick={() => setPlaylistSelection([])}>{t('Deselect all')}</Button></div></div><div className="playlist-grid">{media.entries.map((item, index) => <button key={`${item.url}-${index}`} type="button" aria-pressed={playlistSelection.includes(index)} className={`playlist-item ${playlistSelection.includes(index) ? 'selected' : ''}`} onClick={() => setPlaylistSelection(list => list.includes(index) ? list.filter(value => value !== index) : [...list, index])}><div className="playlist-thumb">{item.thumbnail ? <img src={item.thumbnail} alt=""/> : <div className="playlist-placeholder"><Play/></div>}<span className="playlist-duration">{duration(item.duration)}</span></div><div className="playlist-copy"><strong>{item.title}</strong><span>{item.platform || media.platform}</span></div><div className="check-dot">{playlistSelection.includes(index) && <Check size={14}/>}</div></button>)}</div></Card>}
 
         </>}
 
@@ -602,7 +676,7 @@ function App() {
               <ImageIcon size={18}/>
               <span>{media?.title || 'Video Thumbnail'}</span>
             </div>
-            <IconButton onClick={() => setViewingThumbnail(null)} title="Close"><X/></IconButton>
+            <IconButton onClick={() => setViewingThumbnail(null)} title={t('Close')}><X/></IconButton>
           </div>
           <div className="lightbox-body">
             <img src={viewingThumbnail} alt="Thumbnail preview"/>
@@ -610,9 +684,9 @@ function App() {
           <div className="lightbox-footer">
             <span className="lightbox-meta">{media?.platform || 'Video'} • High Resolution Preview</span>
             <div className="button-row">
-              <Button icon={Copy} onClick={() => { navigator.clipboard.writeText(viewingThumbnail); setToast('Thumbnail link copied') }}>Copy Link</Button>
+              <Button icon={Copy} onClick={() => { navigator.clipboard.writeText(viewingThumbnail); setToast('Thumbnail link copied') }}>{t('Copy Link')}</Button>
               <Button icon={Download} variant="primary" onClick={() => saveThumbnailNow(viewingThumbnail, media?.title)} disabled={downloadingThumb}>
-                {downloadingThumb ? 'Saving…' : 'Download Thumbnail'}
+                {downloadingThumb ? t('Saving…') : t('Download Thumbnail')}
               </Button>
             </div>
           </div>
@@ -655,8 +729,8 @@ function FormatInspector({ formats, formatId, setFormatId, t }) {
     <Card className="format-inspector-card">
       <div className="card-title format-inspector-header">
         <div>
-          <h2>Format inspector</h2>
-          <p>Choose an exact media stream below or keep automatic Best quality.</p>
+          <h2>{t('Format inspector')}</h2>
+          <p>{t('Choose an exact media stream below or keep automatic Best quality.')}</p>
         </div>
         <Button
           icon={Sparkles}
@@ -664,7 +738,7 @@ function FormatInspector({ formats, formatId, setFormatId, t }) {
           onClick={() => setFormatId('')}
           className="format-auto-btn"
         >
-          {!formatId ? '✓ Automatic Best (Active)' : 'Reset to Automatic Best'}
+          {!formatId ? t('✓ Automatic Best (Active)') : t('Reset to Automatic Best')}
         </Button>
       </div>
 
@@ -674,28 +748,28 @@ function FormatInspector({ formats, formatId, setFormatId, t }) {
           className={`format-filter-pill ${filter === 'all' ? 'active' : ''}`}
           onClick={() => setFilter('all')}
         >
-          All Streams <span className="filter-count">{counts.all}</span>
+          {t('All Streams')} <span className="filter-count">{counts.all}</span>
         </button>
         <button
           type="button"
           className={`format-filter-pill ${filter === 'both' ? 'active' : ''}`}
           onClick={() => setFilter('both')}
         >
-          <Film size={14} /> Video + Audio <span className="filter-count">{counts.both}</span>
+          <Film size={14} /> {t('Video + Audio')} <span className="filter-count">{counts.both}</span>
         </button>
         <button
           type="button"
           className={`format-filter-pill ${filter === 'video' ? 'active' : ''}`}
           onClick={() => setFilter('video')}
         >
-          <Video size={14} /> Video Only <span className="filter-count">{counts.video}</span>
+          <Video size={14} /> {t('Video Only')} <span className="filter-count">{counts.video}</span>
         </button>
         <button
           type="button"
           className={`format-filter-pill ${filter === 'audio' ? 'active' : ''}`}
           onClick={() => setFilter('audio')}
         >
-          <Volume2 size={14} /> Audio Only <span className="filter-count">{counts.audio}</span>
+          <Volume2 size={14} /> {t('Audio Only')} <span className="filter-count">{counts.audio}</span>
         </button>
       </div>
 
@@ -722,7 +796,7 @@ function FormatInspector({ formats, formatId, setFormatId, t }) {
               )}
               <div className="stream-kind-labels">
                 <span className={`stream-kind-pill ${item.isBoth ? 'complete' : item.isVideoOnly ? 'video' : 'audio'}`}>
-                  {item.isBoth ? 'Video + Audio' : item.isVideoOnly ? 'Video Only' : 'Audio Only'}
+                  {item.isBoth ? t('Video + Audio') : item.isVideoOnly ? t('Video Only') : t('Audio Only')}
                 </span>
                 {item.hdr && item.hdr !== 'SDR' && <span className="stream-hdr-pill">{item.hdr}</span>}
               </div>
@@ -750,14 +824,14 @@ function FormatInspector({ formats, formatId, setFormatId, t }) {
 
             <div className="format-select-action">
               {formatId === item.id ? (
-                <span className="format-selected-check"><Check size={14} /> Selected</span>
+                <span className="format-selected-check"><Check size={14} /> {t('Selected')}</span>
               ) : (
                 <button
                   type="button"
                   className="format-row-btn"
                   onClick={e => { e.stopPropagation(); setFormatId(item.id); }}
                 >
-                  Select
+                  {t('Select')}
                 </button>
               )}
             </div>
@@ -769,22 +843,26 @@ function FormatInspector({ formats, formatId, setFormatId, t }) {
 }
 
 function DownloadsPage({ active, history, tab, setTab, api, running }) {
+  const t = useContext(I18nContext)
   const stopped = active.filter(item => ['Failed', 'Cancelled', 'Paused'].includes(item.status)).length
-  return <><PageHeader title="Downloads" subtitle="Follow current transfers or reopen completed files" action={<Button icon={FolderOpen} onClick={() => api.open_download_folder()}>Open download folder</Button>}/><div className="tabs"><button className={tab === 'Current' ? 'active' : ''} onClick={() => setTab('Current')}><Download/> Current downloading</button><button className={tab === 'Downloaded' ? 'active' : ''} onClick={() => setTab('Downloaded')}><Check/> Downloaded</button></div>{tab === 'Current' ? <Card><div className="card-title"><div><h2>Current downloading</h2><p>Parallel, resumable transfers with live processing states</p></div><div className="button-row">{stopped > 0 && <Button icon={Trash2} onClick={() => api.clear_stopped_downloads()}>Clear stopped/errors ({stopped})</Button>}<Button icon={PauseCircle} variant="danger" onClick={() => api.cancel_downloads()} disabled={!running}>Stop all</Button></div></div>{active.length ? <DownloadTable items={active} api={api}/> : <Empty title="Nothing downloading" text="Start a download from Home or the Queue."/>}</Card> : <Card><div className="card-title"><div><h2>Downloaded files</h2><p>{history.length} completed items</p></div></div>{history.length ? <DownloadTable items={history} completed api={api}/> : <Empty icon={History} title="No downloads yet" text="Completed files will appear here."/>}</Card>}</>
+  return <><PageHeader title="Downloads" subtitle="Follow current transfers or reopen completed files" action={<Button icon={FolderOpen} onClick={() => api.open_download_folder()}>Open download folder</Button>}/><div className="tabs"><button className={tab === 'Current' ? 'active' : ''} onClick={() => setTab('Current')}><Download/> {t('Current downloading')}</button><button className={tab === 'Downloaded' ? 'active' : ''} onClick={() => setTab('Downloaded')}><Check/> {t('Downloaded')}</button></div>{tab === 'Current' ? <Card><div className="card-title"><div><h2>{t('Current downloading')}</h2><p>{t('Parallel, resumable transfers with live processing states')}</p></div><div className="button-row">{stopped > 0 && <Button icon={Trash2} onClick={() => api.clear_stopped_downloads()}>{t('Clear stopped/errors')} ({stopped})</Button>}<Button icon={PauseCircle} variant="danger" onClick={() => api.cancel_downloads()} disabled={!running}>{t('Stop all')}</Button></div></div>{active.length ? <DownloadTable items={active} api={api}/> : <Empty title="Nothing downloading" text="Start a download from Home or the Queue."/>}</Card> : <Card><div className="card-title"><div><h2>{t('Downloaded files')}</h2><p>{history.length} {t('completed items')}</p></div></div>{history.length ? <DownloadTable items={history} completed api={api}/> : <Empty icon={History} title="No downloads yet" text="Completed files will appear here."/>}</Card>}</>
 }
 
 function DownloadTable({ items, completed = false, api }) {
-  return <div className="table-wrap"><table><thead><tr><th>Video</th><th>Platform</th><th>Quality</th>{!completed && <><th>Progress</th><th>Speed</th><th>ETA</th><th>Status</th><th>Actions</th></>}{completed && <><th>Completed</th><th>File</th></>}</tr></thead><tbody>{items.map(item => <tr key={item.id}><td><strong>{item.title}</strong>{item.error && <small className="error-text">{item.error}</small>}</td><td><span className="platform-pill">{item.platform || 'Video'}</span></td><td>{item.quality}</td>{!completed && <><td><Progress value={item.progress}/></td><td>{item.speed}</td><td>{item.eta}</td><td><span className={`status ${item.status.toLowerCase()}`}>{item.status}</span></td><td>{['Failed', 'Cancelled', 'Paused', 'Waiting'].includes(item.status) && <IconButton className="danger-text" title="Remove this download" onClick={() => api.remove_queue_item(item.id)}><Trash2/></IconButton>}</td></>}{completed && <><td>{new Date(item.completedAt || item.createdAt).toLocaleString()}</td><td><IconButton title="Show downloaded file in folder" onClick={() => api.show_in_folder(item.outputPath)}><FolderOpen/></IconButton></td></>}</tr>)}</tbody></table></div>
+  const t = useContext(I18nContext)
+  return <div className="table-wrap"><table><thead><tr><th>{t('Video')}</th><th>{t('Platform')}</th><th>{t('Quality')}</th>{!completed && <><th>{t('Progress')}</th><th>{t('Speed')}</th><th>{t('ETA')}</th><th>{t('Status')}</th><th>{t('Actions')}</th></>}{completed && <><th>{t('Completed')}</th><th>{t('File')}</th></>}</tr></thead><tbody>{items.map(item => <tr key={item.id}><td><strong>{item.title}</strong>{item.error && <small className="error-text">{item.error}</small>}</td><td><span className="platform-pill">{item.platform || 'Video'}</span></td><td>{item.quality}</td>{!completed && <><td><Progress value={item.progress}/></td><td>{item.speed}</td><td>{item.eta}</td><td><span className={`status ${item.status.toLowerCase()}`}>{t(item.status) || item.status}</span></td><td>{['Failed', 'Cancelled', 'Paused', 'Waiting'].includes(item.status) && <IconButton className="danger-text" title={t('Remove this download')} onClick={() => api.remove_queue_item(item.id)}><Trash2/></IconButton>}</td></>}{completed && <><td>{new Date(item.completedAt || item.createdAt).toLocaleString()}</td><td><IconButton title={t('Show downloaded file in folder')} onClick={() => api.show_in_folder(item.outputPath)}><FolderOpen/></IconButton></td></>}</tr>)}</tbody></table></div>
 }
 
 function QueuePage({ queue, updateItem, api, startSelected }) {
+  const t = useContext(I18nContext)
   const waiting = queue.filter(item => item.status !== 'Completed')
-  return <><PageHeader title="Download queue" subtitle="Select items, adjust priority, and recover failed transfers" action={<Button icon={RotateCcw} onClick={() => api.retry_failed_items('resume')}>Recover all failed</Button>}/><Card><div className="card-title"><div className="button-row"><Button icon={Check} onClick={() => waiting.forEach(item => updateItem(item.id, { selected: true }))}>Select all</Button><Button icon={X} onClick={() => waiting.forEach(item => updateItem(item.id, { selected: false }))}>Clear</Button><Button icon={Download} variant="primary" onClick={startSelected}>Download selected</Button></div><Button icon={Trash2} onClick={() => api.clear_completed()}>Remove completed</Button></div>{waiting.length ? <div className="table-wrap"><table><thead><tr><th>Select</th><th>Video</th><th>Type</th><th>Quality</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead><tbody>{waiting.map(item => <tr key={item.id}><td><input type="checkbox" checked={item.selected} onChange={event => updateItem(item.id, { selected: event.target.checked })}/></td><td><strong>{item.title}</strong>{item.recovery && <small className="recovery-text">{item.recovery.action}</small>}</td><td>{item.kind}</td><td>{item.quality}</td><td><select value={item.priority} onChange={event => updateItem(item.id, { priority: Number(event.target.value) })}><option value="0">Low</option><option value="3">Normal</option><option value="7">High</option></select></td><td><span className={`status ${item.status.toLowerCase()}`}>{item.status}</span></td><td><div className="row-actions">{['Failed','Cancelled'].includes(item.status) && <><IconButton title="Resume with the same settings" onClick={() => api.retry_queue_item(item.id, 'resume')}><RefreshCw/></IconButton><IconButton title="Retry with automatic best format" onClick={() => api.retry_queue_item(item.id, 'best')}><Sparkles/></IconButton><IconButton title="Safe retry at 720p" onClick={() => api.retry_queue_item(item.id, 'safe')}><ShieldCheck/></IconButton></>}<IconButton className="danger-text" onClick={() => api.remove_queue_item(item.id)}><Trash2/></IconButton></div></td></tr>)}</tbody></table></div> : <Empty icon={ListChecks} title="Queue is clear" text="Paste multiple links or add a playlist from Home."/>}</Card></>
+  return <><PageHeader title="Download queue" subtitle="Select items, adjust priority, and recover failed transfers" action={<Button icon={RotateCcw} onClick={() => api.retry_failed_items('resume')}>Recover all failed</Button>}/><Card><div className="card-title"><div className="button-row"><Button icon={Check} onClick={() => waiting.forEach(item => updateItem(item.id, { selected: true }))}>Select all</Button><Button icon={X} onClick={() => waiting.forEach(item => updateItem(item.id, { selected: false }))}>Clear</Button><Button icon={Download} variant="primary" onClick={startSelected}>Download selected</Button></div><Button icon={Trash2} onClick={() => api.clear_completed()}>Remove completed</Button></div>{waiting.length ? <div className="table-wrap"><table><thead><tr><th>{t('Select')}</th><th>{t('Video')}</th><th>{t('Type')}</th><th>{t('Quality')}</th><th>{t('Priority')}</th><th>{t('Status')}</th><th>{t('Actions')}</th></tr></thead><tbody>{waiting.map(item => <tr key={item.id}><td><input type="checkbox" checked={item.selected} onChange={event => updateItem(item.id, { selected: event.target.checked })}/></td><td><strong>{item.title}</strong>{item.recovery && <small className="recovery-text">{item.recovery.action}</small>}</td><td>{item.kind}</td><td>{item.quality}</td><td><select value={item.priority} onChange={event => updateItem(item.id, { priority: Number(event.target.value) })}><option value="0">{t('Low')}</option><option value="3">{t('Normal')}</option><option value="7">{t('High')}</option></select></td><td><span className={`status ${item.status.toLowerCase()}`}>{t(item.status) || item.status}</span></td><td><div className="row-actions">{['Failed','Cancelled'].includes(item.status) && <><IconButton title={t('Resume with the same settings')} onClick={() => api.retry_queue_item(item.id, 'resume')}><RefreshCw/></IconButton><IconButton title={t('Retry with automatic best format')} onClick={() => api.retry_queue_item(item.id, 'best')}><Sparkles/></IconButton><IconButton title={t('Safe retry at 720p')} onClick={() => api.retry_queue_item(item.id, 'safe')}><ShieldCheck/></IconButton></>}<IconButton className="danger-text" title={t('Remove this download')} onClick={() => api.remove_queue_item(item.id)}><Trash2/></IconButton></div></td></tr>)}</tbody></table></div> : <Empty icon={ListChecks} title="Queue is clear" text="Paste multiple links or add a playlist from Home."/>}</Card></>
 }
 
 function HistoryPage({ history, activity, api }) {
+  const t = useContext(I18nContext)
   const [tab, setTab] = useState('Downloads')
-  return <><PageHeader title="History & activity" subtitle="Completed files and a persistent diagnostic log"/><div className="tabs"><button className={tab === 'Downloads' ? 'active' : ''} onClick={() => setTab('Downloads')}><History/> Download history <span>{history.length}</span></button><button className={tab === 'Activity' ? 'active' : ''} onClick={() => setTab('Activity')}><ListChecks/> Activity log <span>{activity.length}</span></button></div>{tab === 'Downloads' ? <Card><div className="card-title"><div><h2>Completed downloads</h2><p>Saved across app restarts with the exact final file path.</p></div>{history.length > 0 && <Button icon={Trash2} onClick={() => api.clear_history()}>Clear history</Button>}</div>{history.length ? <DownloadTable items={history} completed api={api}/> : <Empty icon={History} title="No history yet" text="Successfully completed downloads will appear here."/>}</Card> : <Card><div className="card-title"><div><h2>Activity log</h2><p>Analysis, queue, download, completion, cancellation, and error events.</p></div>{activity.length > 0 && <Button icon={Trash2} onClick={() => api.clear_activity_log()}>Clear log</Button>}</div>{activity.length ? <div className="table-wrap"><table className="activity-table"><thead><tr><th>Time</th><th>Level</th><th>Event</th><th>Item</th><th>Message</th></tr></thead><tbody>{activity.map(item => <tr key={item.id}><td>{new Date(item.timestamp).toLocaleString()}</td><td><span className={`log-level ${item.level}`}>{item.level}</span></td><td>{item.event}</td><td><strong>{item.title || 'Application'}</strong></td><td><div className="log-message" title={item.message}>{item.message}</div></td></tr>)}</tbody></table></div> : <Empty icon={ListChecks} title="No activity yet" text="New actions and diagnostics will be recorded here."/>}</Card>}</>
+  return <><PageHeader title="History & activity" subtitle="Completed files and a persistent diagnostic log"/><div className="tabs"><button className={tab === 'Downloads' ? 'active' : ''} onClick={() => setTab('Downloads')}><History/> {t('Download history')} <span>{history.length}</span></button><button className={tab === 'Activity' ? 'active' : ''} onClick={() => setTab('Activity')}><ListChecks/> {t('Activity log')} <span>{activity.length}</span></button></div>{tab === 'Downloads' ? <Card><div className="card-title"><div><h2>{t('Completed downloads')}</h2><p>{t('Saved across app restarts with the exact final file path.')}</p></div>{history.length > 0 && <Button icon={Trash2} onClick={() => api.clear_history()}>{t('Clear history')}</Button>}</div>{history.length ? <DownloadTable items={history} completed api={api}/> : <Empty icon={History} title="No history yet" text="Successfully completed downloads will appear here."/>}</Card> : <Card><div className="card-title"><div><h2>{t('Activity log')}</h2><p>{t('Analysis, queue, download, completion, cancellation, and error events.')}</p></div>{activity.length > 0 && <Button icon={Trash2} onClick={() => api.clear_activity_log()}>{t('Clear log')}</Button>}</div>{activity.length ? <div className="table-wrap"><table className="activity-table"><thead><tr><th>{t('Time')}</th><th>{t('Level')}</th><th>{t('Event')}</th><th>{t('Item')}</th><th>{t('Message')}</th></tr></thead><tbody>{activity.map(item => <tr key={item.id}><td>{new Date(item.timestamp).toLocaleString()}</td><td><span className={`log-level ${item.level}`}>{item.level}</span></td><td>{item.event}</td><td><strong>{item.title || 'Application'}</strong></td><td><div className="log-message" title={item.message}>{item.message}</div></td></tr>)}</tbody></table></div> : <Empty icon={ListChecks} title="No activity yet" text="New actions and diagnostics will be recorded here."/>}</Card>}</>
 }
 
 function ConverterPage({ files, setFiles, format, setFormat, conversions, choose, start, api, outputLocation, browseOutput }) {
@@ -792,10 +870,10 @@ function ConverterPage({ files, setFiles, format, setFormat, conversions, choose
   const formats = ['MP4', 'MOV', 'MKV', 'WEBM', 'MP3', 'OGG', 'WAV', 'FLAC', 'M4A', 'JPG', 'PNG', 'GIF']
   return <><PageHeader title="Media converter" subtitle="Convert video, audio, and images locally with the bundled FFmpeg engine."/>
     <div className="converter-layout">
-      <Card className="converter-setup"><div className="converter-icon"><RotateCcw size={30}/></div><h2>{t('Choose files')}</h2><p className="hint">MOV, HEIC, MP4, MKV, audio, and image files are supported when their codec is available in FFmpeg.</p><Button icon={FolderOpen} onClick={choose}>{t('Choose files')}</Button><div className="selected-files">{files.length ? files.map((path, index) => <div key={path}><FileVideo/><span title={path}>{path.split(/[\\/]/).pop()}</span><IconButton onClick={() => setFiles(current => current.filter((_, value) => value !== index))}><X/></IconButton></div>) : <Empty icon={FileVideo} title="No files selected" text="Choose one or more files from your computer."/>}</div></Card>
-      <Card className="converter-options"><h2>{t('Output format')}</h2><div className="format-choice-grid">{formats.map(value => <button key={value} className={format === value ? 'selected' : ''} onClick={() => setFormat(value)}>{['MP3','OGG','WAV','FLAC','M4A'].includes(value) ? <FileAudio/> : <FileVideo/>}<span>{value}</span></button>)}</div><div className="converter-destination"><span>Save converted files to</span><strong title={outputLocation}>{outputLocation}</strong><div className="button-row"><Button icon={FolderOpen} onClick={browseOutput}>Change folder</Button><Button icon={FolderOpen} onClick={() => api.open_conversion_folder()}>Open folder</Button></div></div><Button icon={RotateCcw} variant="primary" className="convert-start" onClick={start} disabled={!files.length}>{t('Start conversion')}</Button><p className="hint">Existing files are never overwritten.</p></Card>
+      <Card className="converter-setup"><div className="converter-icon"><RotateCcw size={30}/></div><h2>{t('Choose files')}</h2><p className="hint">{t('MOV, HEIC, MP4, MKV, audio, and image files are supported when their codec is available in FFmpeg.')}</p><Button icon={FolderOpen} onClick={choose}>{t('Choose files')}</Button><div className="selected-files">{files.length ? files.map((path, index) => <div key={path}><FileVideo/><span title={path}>{path.split(/[\\/]/).pop()}</span><IconButton onClick={() => setFiles(current => current.filter((_, value) => value !== index))}><X/></IconButton></div>) : <Empty icon={FileVideo} title="No files selected" text="Choose one or more files from your computer."/>}</div></Card>
+      <Card className="converter-options"><h2>{t('Output format')}</h2><div className="format-choice-grid">{formats.map(value => <button key={value} className={format === value ? 'selected' : ''} onClick={() => setFormat(value)}>{['MP3','OGG','WAV','FLAC','M4A'].includes(value) ? <FileAudio/> : <FileVideo/>}<span>{value}</span></button>)}</div><div className="converter-destination"><span>{t('Save converted files to')}</span><strong title={outputLocation}>{outputLocation}</strong><div className="button-row"><Button icon={FolderOpen} onClick={browseOutput}>{t('Change folder')}</Button><Button icon={FolderOpen} onClick={() => api.open_conversion_folder()}>{t('Open folder')}</Button></div></div><Button icon={RotateCcw} variant="primary" className="convert-start" onClick={start} disabled={!files.length}>{t('Start conversion')}</Button><p className="hint">{t('Existing files are never overwritten.')}</p></Card>
     </div>
-    <Card><div className="card-title"><div><h2>{t('Conversion jobs')}</h2><p>{conversions.length} files</p></div></div>{conversions.length ? <div className="table-wrap"><table className="conversion-table"><thead><tr><th>{t('Source')}</th><th>{t('Format')}</th><th>{t('Progress')}</th><th>{t('Status')}</th><th>Output file</th><th>{t('Actions')}</th></tr></thead><tbody>{conversions.map(item => <tr key={item.id}><td><strong>{item.name}</strong>{item.error && <small className="error-text">{item.error}</small>}</td><td>{item.format}</td><td><Progress value={item.progress}/></td><td><span className={`status ${item.status.toLowerCase()}`}>{item.status}</span></td><td><small className="output-file" title={item.outputPath}>{item.outputPath?.split(/[\\/]/).pop()}</small></td><td><div className="row-actions">{item.status === 'Completed' && <IconButton title="Show converted file in folder" onClick={() => api.show_in_folder(item.outputPath)}><FolderOpen/></IconButton>}{['Waiting','Converting'].includes(item.status) && <IconButton title="Cancel" onClick={() => api.cancel_conversion(item.id)}><X/></IconButton>}<IconButton className="danger-text" title="Remove" onClick={() => api.remove_conversion(item.id)}><Trash2/></IconButton></div></td></tr>)}</tbody></table></div> : <Empty icon={RotateCcw} title="No conversion jobs" text="Choose local files and select an output format to begin."/>}</Card>
+    <Card><div className="card-title"><div><h2>{t('Conversion jobs')}</h2><p>{conversions.length} {t('files')}</p></div></div>{conversions.length ? <div className="table-wrap"><table className="conversion-table"><thead><tr><th>{t('Source')}</th><th>{t('Format')}</th><th>{t('Progress')}</th><th>{t('Status')}</th><th>{t('Output file')}</th><th>{t('Actions')}</th></tr></thead><tbody>{conversions.map(item => <tr key={item.id}><td><strong>{item.name}</strong>{item.error && <small className="error-text">{item.error}</small>}</td><td>{item.format}</td><td><Progress value={item.progress}/></td><td><span className={`status ${item.status.toLowerCase()}`}>{t(item.status) || item.status}</span></td><td><small className="output-file" title={item.outputPath}>{item.outputPath?.split(/[\\/]/).pop()}</small></td><td><div className="row-actions">{item.status === 'Completed' && <IconButton title={t('Show converted file in folder')} onClick={() => api.show_in_folder(item.outputPath)}><FolderOpen/></IconButton>}{['Waiting','Converting'].includes(item.status) && <IconButton title={t('Cancel')} onClick={() => api.cancel_conversion(item.id)}><X/></IconButton>}<IconButton className="danger-text" title={t('Remove')} onClick={() => api.remove_conversion(item.id)}><Trash2/></IconButton></div></td></tr>)}</tbody></table></div> : <Empty icon={RotateCcw} title="No conversion jobs" text="Choose local files and select an output format to begin."/>}</Card>
   </>
 }
 
@@ -854,8 +932,9 @@ function StudioPage({ media, settings, result, busy, run, localVideo, chooseLoca
     catch (error) { setToast(errorText(error)) }
   }
 
+  const t = useContext(I18nContext)
   return <><PageHeader title="Creator studio" subtitle="Turn one video into clips, subtitles, creator assets, and reusable workflows" action={<div className="button-row"><Button icon={PackageOpen} onClick={() => run('status')}>System status</Button><Button icon={RefreshCw} onClick={() => run('updates')}>Check updates</Button></div>}/>
-    <div className="studio-tabs">{[['Clips',Scissors],['Subtitles',Captions],['Creator Pack',Sparkles],['Recipes',ListChecks],['AI Skills',BrainCircuit]].map(([name, Icon]) => <button key={name} className={tab === name ? 'active' : ''} onClick={() => setTab(name)}><Icon/>{name}</button>)}</div>
+    <div className="studio-tabs">{[['Clips',Scissors],['Subtitles',Captions],['Creator Pack',Sparkles],['Recipes',ListChecks],['AI Skills',BrainCircuit]].map(([name, Icon]) => <button key={name} className={tab === name ? 'active' : ''} onClick={() => setTab(name)}><Icon/>{t(name)}</button>)}</div>
 
     {tab === 'Clips' && <Card><div className="card-title"><div><span className="section-icon orange"><Scissors/></span><h2>Smart Clip Maker</h2><p>AI finds complete, standalone moments using transcript timestamps. Nothing downloads until you queue selected clips.</p></div><Button icon={BrainCircuit} variant="primary" onClick={createClips} disabled={clipBusy || !media}>{clipBusy ? 'Finding moments…' : 'Find smart clips'}</Button></div><div className="clip-controls"><label>Clip style<select value={clipMode} onChange={event => setClipMode(event.target.value)}><option value="highlights">Best highlights</option><option value="educational moments">Educational points</option><option value="short-form hooks">Short-form hooks</option><option value="funny moments">Funny moments</option></select></label><label>Transcript language<input value={subtitleLanguage} onChange={event => setSubtitleLanguage(event.target.value)} placeholder="en, km…"/></label></div><div className="clip-output-options"><label className="check-label"><input type="checkbox" checked={verticalClips} onChange={event => setVerticalClips(event.target.checked)}/> Resize and pad to vertical 9:16</label><label className="check-label"><input type="checkbox" checked={addHookCaption} onChange={event => setAddHookCaption(event.target.checked)}/> Add the AI hook caption</label><label className="check-label"><input type="checkbox" checked={removeSilence} onChange={event => setRemoveSilence(event.target.checked)}/> Remove silent gaps</label></div>{clips.length ? <><div className="clip-list">{clips.map(clip => <label key={clip.id} className={`clip-item ${clip.selected ? 'selected' : ''}`}><input type="checkbox" checked={clip.selected} onChange={event => setClips(current => current.map(value => value.id === clip.id ? { ...value, selected: event.target.checked } : value))}/><div><strong>{clip.title}</strong><span>{clip.start} → {clip.end}</span><p>{clip.reason}</p><small>{clip.caption}</small></div></label>)}</div><Button icon={Download} variant="primary" onClick={queueClips}>Add selected clips to queue</Button></> : <Empty icon={Scissors} title="No smart clips yet" text="Analyze a video with subtitles, choose a clip style, and find its strongest moments."/>}</Card>}
 
@@ -879,12 +958,12 @@ function SettingsPage({ draft, setDraft, browse, browseConversion, save, models,
   async function addGeminiKey() { try { setGeminiKeys(await api.add_gemini_key(newGeminiKey)); setNewGeminiKey('') } catch (error) { setAuthMessage(errorText(error)) } }
   async function removeGeminiKey(id) { setGeminiKeys(await api.remove_gemini_key(id)) }
   return <><PageHeader title="Settings" subtitle="Performance, browser connection, AI, and appearance"/><div className="settings-columns">
-    <Card><h2>{t('Download performance')}</h2><label>{t('Download folder')}<div className="input-action"><input value={draft.saveLocation || ''} onChange={event => set('saveLocation', event.target.value)} placeholder="Choose or paste download folder"/><Button icon={FolderOpen} onClick={browse}>Browse</Button></div></label><label>Converted files folder<div className="input-action"><input value={draft.conversionLocation || ''} onChange={event => set('conversionLocation', event.target.value)} placeholder="Choose or paste converted files folder"/><Button icon={FolderOpen} onClick={browseConversion}>Browse</Button></div></label><div className="field-grid"><label>{t('Parallel downloads')}<select value={draft.parallelDownloads} onChange={event => set('parallelDownloads', Number(event.target.value))}>{[1,2,3,4].map(value => <option key={value}>{value}</option>)}</select></label><label>{t('Fragments per download')}<select value={draft.concurrentFragments} onChange={event => set('concurrentFragments', Number(event.target.value))}>{[1,2,4,8,16].map(value => <option key={value}>{value}</option>)}</select></label></div><p className="hint">Download and converted files can use different folders. Choose both locations before saving settings.</p><label>{t('Filename template')}<input value={draft.filenameTemplate} onChange={event => set('filenameTemplate', event.target.value)}/></label><label className="check-label"><input type="checkbox" checked={draft.preventDuplicates} onChange={event => set('preventDuplicates', event.target.checked)}/> {t('Prevent duplicate downloads')}</label></Card>
-    <Card><h2>{t('Site authentication')}</h2><p className="hint">Facebook, TikTok, Douyin, and authorized SharePoint links may need cookies from a browser where you are signed in. Close that browser first if its cookie database is locked. Owner-blocked downloads remain unavailable.</p><label>{t('Use browser cookies')}<select value={draft.browserCookies} onChange={event => set('browserCookies', event.target.value)}>{['None','Chrome','Edge','Firefox'].map(value => <option key={value}>{value}</option>)}</select></label><h2 className="section-gap">{t('Appearance')}</h2><div className="segmented">{['Light','Dark','Liquid Glass','System'].map(value => <button key={value} className={draft.theme === value ? 'selected' : ''} onClick={() => { set('theme', value); setTheme(value) }}>{value === 'Dark' ? <Moon/> : value === 'Liquid Glass' ? <Sparkles/> : <Sun/>}{t(value)}</button>)}</div></Card>
-    <Card className="wide-card update-card"><div className="card-title"><div><span className="section-icon cyan"><RefreshCw className={updateStatus?.status === 'checking' ? 'spin' : ''}/></span><h2>Application updates</h2><p>Automatically checks verified releases from GitHub and restarts after installation.</p></div><span className={`connection-pill ${updateStatus?.status === 'current' ? 'online' : ''}`}>Version {updateStatus?.currentVersion || '—'}</span></div><div className="update-layout"><div><strong>{updateStatus?.available ? `Version ${updateStatus.latestVersion} available` : updateStatus?.status === 'current' ? 'You have the latest version' : 'Release update service'}</strong><p className={updateStatus?.status === 'error' ? 'connection-error' : 'hint'}>{updateStatus?.message}</p>{['downloading','installing'].includes(updateStatus?.status) && <div className="update-progress"><span style={{ width: `${updateStatus.progress || 0}%` }}/></div>}</div><div className="button-row"><Button icon={RefreshCw} onClick={checkUpdate} disabled={['checking','downloading','installing'].includes(updateStatus?.status)}>{updateStatus?.status === 'checking' ? 'Checking…' : 'Check for updates'}</Button>{updateStatus?.available && <Button icon={Download} variant="primary" onClick={installUpdate} disabled={['downloading','installing'].includes(updateStatus?.status)}>{updateStatus?.status === 'downloading' ? `Downloading ${Math.round(updateStatus.progress || 0)}%` : updateStatus?.status === 'installing' ? 'Restarting…' : `Install ${updateStatus.latestVersion}`}</Button>}</div></div></Card>
-    <Card className="wide-card extension-card"><div className="card-title"><div><span className="section-icon cyan"><Cable/></span><h2>Browser extension</h2><p>Authenticated local connection for the YouTube, TikTok, Facebook, and web video button.</p></div><span className={`connection-pill ${extensionConnection?.connected ? 'online' : ''}`}><Wifi/>{extensionConnection?.connected ? 'Connected' : 'Not tested'}</span></div><div className="extension-grid"><label>Local endpoint<input value="http://127.0.0.1:38473" readOnly/></label><label>Connection token<div className="input-action"><input value={draft.apiToken} readOnly/><Button icon={Copy} onClick={() => navigator.clipboard.writeText(draft.apiToken)}>Copy</Button></div></label><div className="button-row"><Button icon={Wifi} variant="success" onClick={testExtension}>Test connection</Button><Button icon={UploadCloud} onClick={() => api.export_browser_extension()}>Export extension</Button></div></div>{extensionConnection?.error && <p className="connection-error">{extensionConnection.error}</p>}</Card>
+    <Card><h2>{t('Download performance')}</h2><label>{t('Download folder')}<div className="input-action"><input value={draft.saveLocation || ''} onChange={event => set('saveLocation', event.target.value)} placeholder={t('Choose or paste download folder')}/><Button icon={FolderOpen} onClick={browse}>Browse</Button></div></label><label>{t('Converted files folder')}<div className="input-action"><input value={draft.conversionLocation || ''} onChange={event => set('conversionLocation', event.target.value)} placeholder={t('Choose or paste converted files folder')}/><Button icon={FolderOpen} onClick={browseConversion}>Browse</Button></div></label><div className="field-grid"><label>{t('Parallel downloads')}<select value={draft.parallelDownloads} onChange={event => set('parallelDownloads', Number(event.target.value))}>{[1,2,3,4].map(value => <option key={value}>{value}</option>)}</select></label><label>{t('Fragments per download')}<select value={draft.concurrentFragments} onChange={event => set('concurrentFragments', Number(event.target.value))}>{[1,2,4,8,16].map(value => <option key={value}>{value}</option>)}</select></label></div><p className="hint">{t('Download and converted files can use different folders. Choose both locations before saving settings.')}</p><label>{t('Filename template')}<input value={draft.filenameTemplate} onChange={event => set('filenameTemplate', event.target.value)}/></label><label className="check-label"><input type="checkbox" checked={draft.preventDuplicates} onChange={event => set('preventDuplicates', event.target.checked)}/> {t('Prevent duplicate downloads')}</label></Card>
+    <Card><h2>{t('Site authentication')}</h2><p className="hint">{t('Facebook, TikTok, Douyin, and authorized SharePoint links may need cookies from a browser where you are signed in. Close that browser first if its cookie database is locked. Owner-blocked downloads remain unavailable.')}</p><label>{t('Use browser cookies')}<select value={draft.browserCookies} onChange={event => set('browserCookies', event.target.value)}>{['None','Chrome','Edge','Firefox'].map(value => <option key={value}>{value}</option>)}</select></label><h2 className="section-gap">{t('Appearance')}</h2><div className="segmented">{['Light','Dark','Liquid Glass','System'].map(value => <button key={value} className={draft.theme === value ? 'selected' : ''} onClick={() => { set('theme', value); setTheme(value) }}>{value === 'Dark' ? <Moon/> : value === 'Liquid Glass' ? <Sparkles/> : <Sun/>}{t(value)}</button>)}</div></Card>
+    <Card className="wide-card update-card"><div className="card-title"><div><span className="section-icon cyan"><RefreshCw className={updateStatus?.status === 'checking' ? 'spin' : ''}/></span><h2>{t('Application updates')}</h2><p>{t('Automatically checks verified releases from GitHub and restarts after installation.')}</p></div><span className={`connection-pill ${updateStatus?.status === 'current' ? 'online' : ''}`}>Version {updateStatus?.currentVersion || '—'}</span></div><div className="update-layout"><div><strong>{updateStatus?.available ? `Version ${updateStatus.latestVersion} available` : updateStatus?.status === 'current' ? t('You have the latest version') : t('Release update service')}</strong><p className={updateStatus?.status === 'error' ? 'connection-error' : 'hint'}>{updateStatus?.message}</p>{['downloading','installing'].includes(updateStatus?.status) && <div className="update-progress"><span style={{ width: `${updateStatus.progress || 0}%` }}/></div>}</div><div className="button-row"><Button icon={RefreshCw} onClick={checkUpdate} disabled={['checking','downloading','installing'].includes(updateStatus?.status)}>{updateStatus?.status === 'checking' ? t('Checking…') : t('Check for updates')}</Button>{updateStatus?.available && <Button icon={Download} variant="primary" onClick={installUpdate} disabled={['downloading','installing'].includes(updateStatus?.status)}>{updateStatus?.status === 'downloading' ? `Downloading ${Math.round(updateStatus.progress || 0)}%` : updateStatus?.status === 'installing' ? 'Restarting…' : `Install ${updateStatus.latestVersion}`}</Button>}</div></div></Card>
+    <Card className="wide-card extension-card"><div className="card-title"><div><span className="section-icon cyan"><Cable/></span><h2>{t('Browser extension')}</h2><p>{t('Authenticated local connection for the YouTube, TikTok, Facebook, and web video button.')}</p></div><span className={`connection-pill ${extensionConnection?.connected ? 'online' : ''}`}><Wifi/>{extensionConnection?.connected ? t('Connected') : t('Not tested')}</span></div><div className="extension-grid"><label>{t('Local endpoint')}<input value="http://127.0.0.1:38473" readOnly/></label><label>{t('Connection token')}<div className="input-action"><input value={draft.apiToken} readOnly/><Button icon={Copy} onClick={() => navigator.clipboard.writeText(draft.apiToken)}>Copy</Button></div></label><div className="button-row"><Button icon={Wifi} variant="success" onClick={testExtension}>Test connection</Button><Button icon={UploadCloud} onClick={() => api.export_browser_extension()}>Export extension</Button></div></div>{extensionConnection?.error && <p className="connection-error">{extensionConnection.error}</p>}</Card>
     <Card className="wide-card ai-settings-card">
-      <div className="card-title"><div><span className="section-icon purple"><BrainCircuit/></span><h2>AI provider and model</h2><p>Choose your preferred AI intelligence engine. Supports Google Gemini, Groq Cloud, OpenRouter, CodeCraft, and Inception Labs.</p></div><ShieldCheck/></div>
+      <div className="card-title"><div><span className="section-icon purple"><BrainCircuit/></span><h2>{t('AI provider and model')}</h2><p>{t('Choose your preferred AI intelligence engine. Supports Google Gemini, Groq Cloud, OpenRouter, CodeCraft, and Inception Labs.')}</p></div><ShieldCheck/></div>
       <div className="provider-switch multi-providers">
         <button className={draft.aiProvider === 'Gemini' ? 'selected' : ''} onClick={() => set('aiProvider', 'Gemini')}><img src="./platforms/gemini.svg" alt=""/>Google Gemini</button>
         <button className={draft.aiProvider === 'Groq' ? 'selected' : ''} onClick={() => set('aiProvider', 'Groq')}><Zap size={15}/>Groq Cloud (7K Free/d)</button>
@@ -1034,19 +1113,20 @@ function SettingsPage({ draft, setDraft, browse, browseConversion, save, models,
           <p className="hint">Encrypted with Windows DPAPI. Access 33 top models (Claude 3.5/Opus, GPT-4o, DeepSeek, Gemini).</p>
         </div>
       )}
-      {draft.aiProvider === 'Custom' && <div className="ai-fields"><label>API base URL<input value={draft.customApiBase} placeholder="https://api.openai.com/v1" onChange={event => set('customApiBase', event.target.value)}/></label><label>API key (optional for local APIs)<input type="password" placeholder={draft.hasCustomApiKey ? 'Key saved securely ••••••••' : 'Paste API key if required'} onChange={event => set('customApiKey', event.target.value)}/></label><label>Model<select value={draft.customApiModel} onChange={event => set('customApiModel', event.target.value)}><option value={draft.customApiModel}>{draft.customApiModel || 'Load available models'}</option>{models.filter(value => value !== draft.customApiModel).map(value => <option key={value}>{value}</option>)}</select></label></div>}
-      {draft.aiProvider === 'Gemini' && <div className="gemini-key-manager"><div className="gemini-key-add"><label>Add Gemini API key ({geminiKeys.length}/10)<input type="password" value={newGeminiKey} placeholder="Paste a key from another Google account" onChange={event => setNewGeminiKey(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') addGeminiKey() }}/></label><Button icon={Plus} variant="primary" onClick={addGeminiKey} disabled={!newGeminiKey.trim() || geminiKeys.length >= 10}>Add key</Button></div><div className="gemini-key-list">{geminiKeys.map(item => <div key={item.id}><KeyRound/><span><strong>{item.label}</strong><small>{item.masked}</small></span><IconButton title="Remove key" className="danger-text" onClick={() => removeGeminiKey(item.id)}><Trash2/></IconButton></div>)}</div><label>Gemini model<select value={draft.geminiModel} onChange={event => set('geminiModel', event.target.value)}><option value={draft.geminiModel}>{draft.geminiModel}</option>{models.filter(value => value !== draft.geminiModel).map(value => <option key={value}>{value}</option>)}</select></label><p className="hint">Keys are encrypted for this Windows account. Quota and authentication failures rotate keys; temporary model overload automatically falls back to a compatible Gemini Flash model.</p></div>}
-      {draft.aiProvider === 'Florence-2' && <div className="local-ai-panel"><MonitorUp/><div><strong>Private thumbnail understanding</strong><p>{localAiStatus}</p><small>The quantized model is cached on first use. Florence-2 creates thumbnail prompts locally; chat and whole-video requests fall back to Gemini or Custom API.</small></div></div>}
-      <label className="check-label ai-fallback"><input type="checkbox" checked={draft.aiFallback !== false} onChange={event => set('aiFallback', event.target.checked)}/> Automatically try another configured provider when the default fails</label>
-      <div className="connection-row"><Button icon={UploadCloud} onClick={loadModels} disabled={busy}>{busy ? 'Connecting…' : draft.aiProvider === 'Florence-2' ? 'Check local model' : 'Test & load models'}</Button>{aiConnection && <span className={`connection-message ${aiConnection.connected ? 'online' : 'error'}`}>{aiConnection.connected ? <Check/> : <X/>}{aiConnection.message}</span>}</div>
+      {draft.aiProvider === 'Custom' && <div className="ai-fields"><label>{t('API base URL')}<input value={draft.customApiBase} placeholder="https://api.openai.com/v1" onChange={event => set('customApiBase', event.target.value)}/></label><label>{t('API key (optional for local APIs)')}<input type="password" placeholder={draft.hasCustomApiKey ? 'Key saved securely ••••••••' : 'Paste API key if required'} onChange={event => set('customApiKey', event.target.value)}/></label><label>{t('Model')}<select value={draft.customApiModel} onChange={event => set('customApiModel', event.target.value)}><option value={draft.customApiModel}>{draft.customApiModel || t('Load available models')}</option>{models.filter(value => value !== draft.customApiModel).map(value => <option key={value}>{value}</option>)}</select></label></div>}
+      {draft.aiProvider === 'Gemini' && <div className="gemini-key-manager"><div className="gemini-key-add"><label>{t('Add Gemini API key')} ({geminiKeys.length}/10)<input type="password" value={newGeminiKey} placeholder="Paste a key from another Google account" onChange={event => setNewGeminiKey(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') addGeminiKey() }}/></label><Button icon={Plus} variant="primary" onClick={addGeminiKey} disabled={!newGeminiKey.trim() || geminiKeys.length >= 10}>{t('Add key')}</Button></div><div className="gemini-key-list">{geminiKeys.map(item => <div key={item.id}><KeyRound/><span><strong>{item.label}</strong><small>{item.masked}</small></span><IconButton title={t('Remove key')} className="danger-text" onClick={() => removeGeminiKey(item.id)}><Trash2/></IconButton></div>)}</div><label>{t('Gemini model')}<select value={draft.geminiModel} onChange={event => set('geminiModel', event.target.value)}><option value={draft.geminiModel}>{draft.geminiModel}</option>{models.filter(value => value !== draft.geminiModel).map(value => <option key={value}>{value}</option>)}</select></label><p className="hint">{t('Keys are encrypted for this Windows account. Quota and authentication failures rotate keys; temporary model overload automatically falls back to a compatible Gemini Flash model.')}</p></div>}
+      {draft.aiProvider === 'Florence-2' && <div className="local-ai-panel"><MonitorUp/><div><strong>{t('Private thumbnail understanding')}</strong><p>{localAiStatus}</p><small>{t('The quantized model is cached on first use. Florence-2 creates thumbnail prompts locally; chat and whole-video requests fall back to Gemini or Custom API.')}</small></div></div>}
+      <label className="check-label ai-fallback"><input type="checkbox" checked={draft.aiFallback !== false} onChange={event => set('aiFallback', event.target.checked)}/> {t('Automatically try another configured provider when the default fails')}</label>
+      <div className="connection-row"><Button icon={UploadCloud} onClick={loadModels} disabled={busy}>{busy ? t('Connecting…') : draft.aiProvider === 'Florence-2' ? t('Check local model') : t('Test & load models')}</Button>{aiConnection && <span className={`connection-message ${aiConnection.connected ? 'online' : 'error'}`}>{aiConnection.connected ? <Check/> : <X/>}{aiConnection.message}</span>}</div>
     </Card>
-    <Card className="wide-card"><div className="card-title"><div><span className="section-icon orange"><Captions/></span><h2>Download enhancements</h2><p>Apply subtitles, SponsorBlock segments, or chapter splitting to new jobs.</p></div></div><div className="enhancement-grid"><label>Subtitle language<input value={draft.subtitleLanguage || ''} onChange={event => set('subtitleLanguage', event.target.value)} placeholder="en or en.*,km"/></label><label className="check-label"><input type="checkbox" checked={Boolean(draft.embedSubtitles)} onChange={event => set('embedSubtitles', event.target.checked)}/> Embed subtitles</label><label className="check-label"><input type="checkbox" checked={Boolean(draft.sponsorBlock)} onChange={event => set('sponsorBlock', event.target.checked)}/> Remove SponsorBlock segments</label><label className="check-label"><input type="checkbox" checked={Boolean(draft.splitChapters)} onChange={event => set('splitChapters', event.target.checked)}/> Split files by chapters</label></div></Card>
-    <Card className="wide-card"><div className="card-title"><div><span className="section-icon cyan"><KeyRound/></span><h2>Authentication test</h2><p>Verify that the selected browser session can access Facebook, TikTok, Douyin, SharePoint, or another signed-in video.</p></div></div><div className="input-action"><input value={authUrl} onChange={event => setAuthUrl(event.target.value)} placeholder="Paste a signed-in video URL"/><Button icon={Wifi} onClick={testAuth}>Test access</Button></div>{authMessage && <p className="hint">{authMessage}</p>}</Card>
-  </div><Button icon={Check} variant="primary" className="save-settings" onClick={save}>Save settings</Button></>
+    <Card className="wide-card"><div className="card-title"><div><span className="section-icon orange"><Captions/></span><h2>{t('Download enhancements')}</h2><p>{t('Apply subtitles, SponsorBlock segments, or chapter splitting to new jobs.')}</p></div></div><div className="enhancement-grid"><label>{t('Subtitle language')}<input value={draft.subtitleLanguage || ''} onChange={event => set('subtitleLanguage', event.target.value)} placeholder="en or en.*,km"/></label><label className="check-label"><input type="checkbox" checked={Boolean(draft.embedSubtitles)} onChange={event => set('embedSubtitles', event.target.checked)}/> {t('Embed subtitles')}</label><label className="check-label"><input type="checkbox" checked={Boolean(draft.sponsorBlock)} onChange={event => set('sponsorBlock', event.target.checked)}/> {t('Remove SponsorBlock segments')}</label><label className="check-label"><input type="checkbox" checked={Boolean(draft.splitChapters)} onChange={event => set('splitChapters', event.target.checked)}/> {t('Split files by chapters')}</label></div></Card>
+    <Card className="wide-card"><div className="card-title"><div><span className="section-icon cyan"><KeyRound/></span><h2>{t('Authentication test')}</h2><p>{t('Verify that the selected browser session can access Facebook, TikTok, Douyin, SharePoint, or another signed-in video.')}</p></div></div><div className="input-action"><input value={authUrl} onChange={event => setAuthUrl(event.target.value)} placeholder={t('Paste a signed-in video URL')}/><Button icon={Wifi} onClick={testAuth}>{t('Test access')}</Button></div>{authMessage && <p className="hint">{authMessage}</p>}</Card>
+  </div><Button icon={Check} variant="primary" className="save-settings" onClick={save}>{t('Save settings')}</Button></>
 }
 
 function AiPage({ messages, input, setInput, video, setVideo, send, useCurrent, grounded, setGrounded }) {
-  return <><PageHeader title="AI assistant" subtitle="Realtime conversation with optional transcript-grounded answers"/><div className="ai-layout"><Card className="chat-card"><div className="video-context"><label>Video context<div className="input-action"><input value={video} onChange={event => setVideo(event.target.value)} placeholder="Attach a public video URL"/><Button icon={Play} onClick={useCurrent}>Use current</Button></div></label><label className="check-label grounded-toggle"><input type="checkbox" checked={grounded} onChange={event => setGrounded(event.target.checked)}/> Ground answers in the video transcript and cite timestamps</label></div><div className="messages">{messages.map((message, index) => <div key={index} className={`message ${message.role === 'You' ? 'user' : ''}`}><div>{message.role === 'You' ? 'You' : <><Sparkles size={14}/> CPS AI</>}</div><p>{message.text}</p>{message.role !== 'You' && message.text !== 'Thinking…' && <button onClick={() => navigator.clipboard.writeText(message.text)}><Copy size={14}/> Copy</button>}</div>)}</div><div className="composer"><textarea value={input} onChange={event => setInput(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); send() } }} placeholder="Ask about the video, request a script, title ideas, or thumbnail prompt…"/><Button icon={Send} variant="primary" onClick={send}>Send</Button></div></Card><div className="ai-tools"><Card><WandSparkles size={26}/><h2>Creative workflows</h2><button onClick={() => setInput('Create a detailed thumbnail image prompt for this video.')}><Sparkles/> Thumbnail prompt</button><button onClick={() => setInput('Summarize this video with its main meaning and key takeaways.')}><MessageCircle/> Video summary</button><button onClick={() => setInput('Deeply analyze this video chronologically and capture all important details.')}><Search/> Deep analysis</button><button onClick={() => setInput('Create a complete video script inspired by this idea.')}><FileVideo/> Script writer</button></Card></div></div></>
+  const t = useContext(I18nContext)
+  return <><PageHeader title="AI assistant" subtitle="Realtime conversation with optional transcript-grounded answers"/><div className="ai-layout"><Card className="chat-card"><div className="video-context"><label>{t('Video context')}<div className="input-action"><input value={video} onChange={event => setVideo(event.target.value)} placeholder={t('Attach a public video URL')}/><Button icon={Play} onClick={useCurrent}>{t('Use current')}</Button></div></label><label className="check-label grounded-toggle"><input type="checkbox" checked={grounded} onChange={event => setGrounded(event.target.checked)}/> {t('Ground answers in the video transcript and cite timestamps')}</label></div><div className="messages">{messages.map((message, index) => <div key={index} className={`message ${message.role === 'You' ? 'user' : ''}`}><div>{message.role === 'You' ? 'You' : <><Sparkles size={14}/> CPS AI</>}</div><p>{message.text}</p>{message.role !== 'You' && message.text !== 'Thinking…' && <button onClick={() => navigator.clipboard.writeText(message.text)}><Copy size={14}/> {t('Copy')}</button>}</div>)}</div><div className="composer"><textarea value={input} onChange={event => setInput(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); send() } }} placeholder={t('Ask about the video, request a script, title ideas, or thumbnail prompt…')}/><Button icon={Send} variant="primary" onClick={send}>{t('Send')}</Button></div></Card><div className="ai-tools"><Card><WandSparkles size={26}/><h2>{t('Creative workflows')}</h2><button onClick={() => setInput('Create a detailed thumbnail image prompt for this video.')}><Sparkles/> {t('Thumbnail prompt')}</button><button onClick={() => setInput('Summarize this video with its main meaning and key takeaways.')}><MessageCircle/> {t('Video summary')}</button><button onClick={() => setInput('Deeply analyze this video chronologically and capture all important details.')}><Search/> {t('Deep analysis')}</button><button onClick={() => setInput('Create a complete video script inspired by this idea.')}><FileVideo/> {t('Script writer')}</button></Card></div></div></>
 }
 
 function AboutPage({ boot, api }) {
@@ -1065,43 +1145,43 @@ function AboutPage({ boot, api }) {
       <Card className="about-hero-card">
         <div className="about-hero-badge">
           <ShieldCheck size={14}/>
-          <span>100% Free & Open Source • MIT License</span>
+          <span>{t('100% Free & Open Source • MIT License')}</span>
         </div>
         <div className="about-brand-header">
           <div className="logo-mark pro-glow"><Download size={44}/></div>
           <div className="about-brand-titles">
             <h1>CPS Universal Downloader Premium</h1>
             <div className="about-version-row">
-              <span className="version-tag">Version {boot.version}</span>
-              <span className="status-indicator-tag"><span className="online-dot"/> Active Engine</span>
-              <span className="portable-tag">Portable Edition</span>
+              <span className="version-tag">{t('Version')} {boot.version}</span>
+              <span className="status-indicator-tag"><span className="online-dot"/> {t('Active Engine')}</span>
+              <span className="portable-tag">{t('Portable Edition')}</span>
             </div>
           </div>
         </div>
         <p className="about-lead">
-          A lightning-fast, privacy-first desktop workspace to download media from YouTube, TikTok, Facebook, Douyin, SharePoint, and 1,000+ platforms. Features native FFmpeg media conversion, multi-provider AI assistance (Groq Cloud, OpenRouter, CodeCraft, Inception Labs, Google Gemini), and zero tracking.
+          {t('A lightning-fast, privacy-first desktop workspace to download media from YouTube, TikTok, Facebook, Douyin, SharePoint, and 1,000+ platforms. Features native FFmpeg media conversion, multi-provider AI assistance (Groq Cloud, OpenRouter, CodeCraft, Inception Labs, Google Gemini), and zero tracking.')}
         </p>
 
         <div className="pro-feature-cards">
           <div className="pro-feature-item">
             <div className="feature-icon-bubble cyan"><Zap size={20}/></div>
-            <strong>Turbo Concurrent Engine</strong>
-            <p>Resumable multi-threaded fragments, 64K buffer, and intelligent quality fallback.</p>
+            <strong>{t('Turbo Concurrent Engine')}</strong>
+            <p>{t('Resumable multi-threaded fragments, 64K buffer, and intelligent quality fallback.')}</p>
           </div>
           <div className="pro-feature-item">
             <div className="feature-icon-bubble purple"><RotateCcw size={20}/></div>
-            <strong>Native Media Converter</strong>
-            <p>Lossless FFmpeg conversion for MP4, MKV, MP3, WAV, FLAC, HEIC, and GIFs.</p>
+            <strong>{t('Native Media Converter')}</strong>
+            <p>{t('Lossless FFmpeg conversion for MP4, MKV, MP3, WAV, FLAC, HEIC, and GIFs.')}</p>
           </div>
           <div className="pro-feature-item">
             <div className="feature-icon-bubble orange"><BrainCircuit size={20}/></div>
-            <strong>Multi-Provider AI Intelligence</strong>
-            <p>Groq (7K free/d), OpenRouter (Free Vision), Inception Labs (Mercury dLLM), CodeCraft (1M/mo), and Google Gemini.</p>
+            <strong>{t('Multi-Provider AI Intelligence')}</strong>
+            <p>{t('Groq (7K free/d), OpenRouter (Free Vision), Inception Labs (Mercury dLLM), CodeCraft (1M/mo), and Google Gemini.')}</p>
           </div>
           <div className="pro-feature-item">
             <div className="feature-icon-bubble green"><ShieldCheck size={20}/></div>
-            <strong>Private & Secure</strong>
-            <p>Zero telemetry. All keys encrypted with Windows DPAPI. Runs completely offline.</p>
+            <strong>{t('Private & Secure')}</strong>
+            <p>{t('Zero telemetry. All keys encrypted with Windows DPAPI. Runs completely offline.')}</p>
           </div>
         </div>
       </Card>
@@ -1111,19 +1191,19 @@ function AboutPage({ boot, api }) {
           <div className="github-card-header">
             <GitHubIcon size={34} className="github-logo-svg"/>
             <div>
-              <h2>GitHub Open Source Project</h2>
+              <h2>{t('GitHub Open Source Project')}</h2>
               <span className="repo-slug">Chuobpiseth/cps-universal-downlaoder</span>
             </div>
           </div>
           <p className="github-card-description">
-            This project is open-source under the MIT license. You can inspect the complete source code, download portable builds, submit feature suggestions, or contribute improvements.
+            {t('This project is open-source under the MIT license. You can inspect the complete source code, download portable builds, submit feature suggestions, or contribute improvements.')}
           </p>
           <div className="github-action-buttons">
             <Button icon={ExternalLink} variant="primary" onClick={() => openUrl('https://github.com/Chuobpiseth/cps-universal-downlaoder')}>
-              <GitHubIcon size={16}/> View Repository
+              <GitHubIcon size={16}/> <span>{t('View Repository')}</span>
             </Button>
             <Button icon={ExternalLink} onClick={() => openUrl('https://github.com/Chuobpiseth/cps-universal-downlaoder/releases')}>
-              Releases & Notes
+              {t('Releases & Notes')}
             </Button>
           </div>
         </Card>
@@ -1132,12 +1212,12 @@ function AboutPage({ boot, api }) {
           <div className="donation-card-header">
             <div className="coffee-bubble"><Coffee size={24}/></div>
             <div>
-              <h2>Support Our Work • Buy Me a Coffee</h2>
-              <p className="donation-subtitle">100% Free Software • Community Supported</p>
+              <h2>{t('Support Our Work • Buy Me a Coffee')}</h2>
+              <p className="donation-subtitle">{t('100% Free Software • Community Supported')}</p>
             </div>
           </div>
           <p className="donation-text">
-            CPS Universal Downloader is free for everyone. If it saves you time and effort, you can support our ongoing development and buy me a coffee via <strong>ABA KHQR</strong>:
+            {t('CPS Universal Downloader is free for everyone. If it saves you time and effort, you can support our ongoing development and buy me a coffee via ABA KHQR:')}
           </p>
           <div className="khqr-card-wrapper">
             <div className="khqr-paper">
@@ -1147,7 +1227,7 @@ function AboutPage({ boot, api }) {
               </div>
               <img src="./assets/aba.png" alt="Donate via ABA KHQR" className="khqr-image" onError={e => { e.currentTarget.style.display = 'none' }}/>
               <div className="khqr-footer-bar">
-                <span>Scan with ABA Mobile, Bakong, or any bank app</span>
+                <span>{t('Scan with ABA Mobile, Bakong, or any bank app')}</span>
               </div>
             </div>
           </div>
@@ -1156,7 +1236,7 @@ function AboutPage({ boot, api }) {
 
       <div className="about-footer-legal">
         <strong className="made-by-text">© 2026 CPS Universal Downloader Premium • {t('Made by Chuob Piseth')}</strong>
-        <p className="disclaimer-text">Download and convert only content that you own or have permission to use.</p>
+        <p className="disclaimer-text">{t('Download and convert only content that you own or have permission to use.')}</p>
       </div>
     </div>
   </>

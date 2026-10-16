@@ -371,6 +371,7 @@ class DesktopApi:
         self.activity: list[dict[str, Any]] = self._load_json(self._activity_file, [])
         self.recipes: list[dict[str, Any]] = self._load_json(self._recipes_file, [])
         self.conversions: list[dict[str, Any]] = []
+        self._analysis_cache: dict[str, tuple[float, dict[str, Any]]] = {}
         for item in self.queue:
             if item.get("status") in {"Downloading", "Processing", "Analyzing"}:
                 item["status"] = "Waiting"
@@ -509,7 +510,10 @@ class DesktopApi:
         return changed
 
     def _base_args(self) -> list[str]:
-        args: list[str] = []
+        args: list[str] = [
+            "--extractor-args", "youtube:skip=hls",
+            "--socket-timeout", "10",
+        ]
         deno = tool_path("deno.exe")
         if deno.exists():
             args += ["--js-runtimes", f"deno:{deno}"]
@@ -565,16 +569,30 @@ class DesktopApi:
 
     def analyze(self, url: str) -> dict[str, Any]:
         url = validate_url(url)
+        cache_key = url.strip()
+        now = time.time()
+        cache = getattr(self, "_analysis_cache", None)
+        lock = getattr(self, "_lock", None)
+        if cache is not None:
+            if lock is not None:
+                with lock:
+                    cached = cache.get(cache_key)
+            else:
+                cached = cache.get(cache_key)
+            if cached and (now - cached[0]) < 300:
+                self._log_activity("info", "analyze", f"Retrieved cached media analysis: {url}")
+                return dict(cached[1])
+
         self._log_activity("info", "analyze", f"Analyzing media link: {url}")
         # Avoid the old two-request workflow: known collections use a fast flat
         # metadata pass, while ordinary video links resolve formats immediately.
         try:
             if looks_like_collection_url(url):
-                info = self._run_json(["--dump-single-json", "--flat-playlist", "--yes-playlist", "--ignore-errors", "--no-warnings", "--socket-timeout", "20", "--playlist-end", "200", url], timeout=75)
+                info = self._run_json(["--dump-single-json", "--flat-playlist", "--yes-playlist", "--ignore-errors", "--no-warnings", "--socket-timeout", "10", "--playlist-end", "200", url], timeout=75)
                 if not (info.get("entries") or []):
-                    info = self._run_json(["--dump-single-json", "--yes-playlist", "--no-warnings", "--socket-timeout", "20", url], timeout=90)
+                    info = self._run_json(["--dump-single-json", "--yes-playlist", "--no-warnings", "--socket-timeout", "10", url], timeout=90)
             else:
-                info = self._run_json(["--dump-single-json", "--no-playlist", "--no-warnings", "--socket-timeout", "20", url], timeout=90)
+                info = self._run_json(["--dump-single-json", "--no-playlist", "--no-warnings", "--socket-timeout", "10", url], timeout=90)
         except RuntimeError as exc:
             message = self._friendly_analysis_error(url, str(exc))
             self._log_activity("error", "analyze", message)
@@ -618,7 +636,15 @@ class DesktopApi:
             "subtitles": subtitles,
             "chapters": chapters,
         }
-        self._log_activity("success", "analyze", f"Loaded {len(entries) if entries else 1} media item(s): {result['title']}")
+        if cache is not None:
+            if lock is not None:
+                with lock:
+                    cache[cache_key] = (time.time(), dict(result))
+                    if len(cache) > 50:
+                        oldest = min(cache, key=lambda k: cache[k][0])
+                        cache.pop(oldest, None)
+            else:
+                cache[cache_key] = (time.time(), dict(result))
         return result
 
     def add_urls(self, items: list[dict[str, Any]], options: dict[str, Any]) -> dict[str, Any]:
