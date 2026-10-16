@@ -2307,6 +2307,84 @@ class DesktopApi:
         history = "\n".join(f"{item.get('role')}: {item.get('text')}" for item in prior_messages[-10:])
         return self._gemini_generate([{"text": f"You are the CPS video assistant. Be concise and useful.\n{context}{history}\nUser: {prompt}"}], timeout=90)
 
+    def read_clipboard_text(self) -> str:
+        """Read plain text from Windows clipboard reliably without browser security errors."""
+        try:
+            user32 = ctypes.windll.user32
+            kernel32 = ctypes.windll.kernel32
+            user32.OpenClipboard.argtypes = [ctypes.c_void_p]
+            user32.OpenClipboard.restype = ctypes.c_bool
+            user32.GetClipboardData.argtypes = [ctypes.c_uint]
+            user32.GetClipboardData.restype = ctypes.c_void_p
+            user32.CloseClipboard.argtypes = []
+            user32.CloseClipboard.restype = ctypes.c_bool
+            kernel32.GlobalLock.argtypes = [ctypes.c_void_p]
+            kernel32.GlobalLock.restype = ctypes.c_void_p
+            kernel32.GlobalUnlock.argtypes = [ctypes.c_void_p]
+            kernel32.GlobalUnlock.restype = ctypes.c_bool
+
+            CF_UNICODETEXT = 13
+            if not user32.OpenClipboard(None):
+                return ""
+            try:
+                handle = user32.GetClipboardData(CF_UNICODETEXT)
+                if not handle:
+                    return ""
+                ptr = kernel32.GlobalLock(handle)
+                if not ptr:
+                    return ""
+                try:
+                    return ctypes.c_wchar_p(ptr).value or ""
+                finally:
+                    kernel32.GlobalUnlock(handle)
+            finally:
+                user32.CloseClipboard()
+        except Exception:
+            return ""
+
+    def set_clipboard_text(self, text: str) -> bool:
+        """Write plain text to Windows clipboard reliably."""
+        try:
+            user32 = ctypes.windll.user32
+            kernel32 = ctypes.windll.kernel32
+            user32.OpenClipboard.argtypes = [ctypes.c_void_p]
+            user32.OpenClipboard.restype = ctypes.c_bool
+            user32.EmptyClipboard.argtypes = []
+            user32.EmptyClipboard.restype = ctypes.c_bool
+            user32.SetClipboardData.argtypes = [ctypes.c_uint, ctypes.c_void_p]
+            user32.SetClipboardData.restype = ctypes.c_void_p
+            user32.CloseClipboard.argtypes = []
+            user32.CloseClipboard.restype = ctypes.c_bool
+            kernel32.GlobalAlloc.argtypes = [ctypes.c_uint, ctypes.c_size_t]
+            kernel32.GlobalAlloc.restype = ctypes.c_void_p
+            kernel32.GlobalLock.argtypes = [ctypes.c_void_p]
+            kernel32.GlobalLock.restype = ctypes.c_void_p
+            kernel32.GlobalUnlock.argtypes = [ctypes.c_void_p]
+            kernel32.GlobalUnlock.restype = ctypes.c_bool
+
+            GMEM_MOVEABLE = 0x0002
+            CF_UNICODETEXT = 13
+            encoded = str(text or "") + "\0"
+            size = len(encoded) * 2
+            h_mem = kernel32.GlobalAlloc(GMEM_MOVEABLE, size)
+            if not h_mem:
+                return False
+            ptr = kernel32.GlobalLock(h_mem)
+            if not ptr:
+                return False
+            ctypes.memmove(ptr, ctypes.c_wchar_p(encoded), size)
+            kernel32.GlobalUnlock(h_mem)
+            if not user32.OpenClipboard(None):
+                return False
+            try:
+                user32.EmptyClipboard()
+                user32.SetClipboardData(CF_UNICODETEXT, h_mem)
+                return True
+            finally:
+                user32.CloseClipboard()
+        except Exception:
+            return False
+
     def shutdown(self) -> None:
         self._shutdown.set()
         self.cancel_downloads()

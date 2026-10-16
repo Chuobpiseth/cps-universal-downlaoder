@@ -430,6 +430,14 @@ class CoreTests(unittest.TestCase):
             reply = api._openai_chat_request("https://api.example.com/v1", "test-key", "test-model", "test prompt")
             self.assertEqual("Generated reply", reply)
 
+    def test_native_clipboard_read_write(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with mock.patch.object(backend, "DATA_DIR", Path(temp_dir)):
+                api = backend.DesktopApi()
+                test_str = "https://youtube.com/watch?v=clip_test_123"
+                if api.set_clipboard_text(test_str):
+                    self.assertEqual(test_str, api.read_clipboard_text())
+
 
 if __name__ == "__main__":
     unittest.main()

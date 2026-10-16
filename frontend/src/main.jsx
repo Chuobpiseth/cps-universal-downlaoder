@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBolt, faClipboard, faDownload, faMusic, faSearch, faWandMagicSparkles } from '@fortawesome/free-solid-svg-icons'
@@ -35,6 +35,7 @@ const khmer = {
   'Paste a link to get started': 'បិទភ្ជាប់តំណដើម្បីចាប់ផ្ដើម', 'Paste video URL, playlist, or multiple links here (YouTube, TikTok, Facebook…)': 'បិទភ្ជាប់តំណវីដេអូ បញ្ជីចាក់ ឬតំណច្រើននៅទីនេះ (YouTube, TikTok, Facebook…)',
   'One URL, a playlist, or multiple links.': 'តំណមួយ បញ្ជីចាក់ ឬតំណច្រើន។', Paste: 'បិទភ្ជាប់', Analyze: 'វិភាគ', 'Analyze only': 'វិភាគតែប៉ុណ្ណោះ', Analyzing: 'កំពុងវិភាគ', 'Analyzing…': 'កំពុងវិភាគ…',
   'Analyzing link and loading available videos…': 'កំពុងវិភាគតំណ និងផ្ទុកវីដេអូដែលមាន…', 'Clear link': 'សម្អាតតំណ', Ready: 'រួចរាល់', 'SharePoint + 1,000 sites': 'SharePoint + គេហទំព័រ ១០០០+',
+  'Link pasted from clipboard': 'បានបិទភ្ជាប់តំណពីក្ដារតម្បៀតខ្ទាស់', 'Clipboard is empty. Copy a link first (Ctrl+C)': 'ក្ដារតម្បៀតខ្ទាស់ទទេ សូមចម្លងតំណជាមុន (Ctrl+C)', 'Press Ctrl+V to paste the link': 'សូមចុច Ctrl+V ដើម្បីបិទភ្ជាប់តំណ',
 
   // Controls & Presets
   'Download settings': 'ការកំណត់ទាញយក', Type: 'ប្រភេទ', Video: 'វីដេអូ', Audio: 'សំឡេង', Quality: 'គុណភាព', Format: 'ទម្រង់', 'Clip start': 'ចាប់ផ្ដើមកាត់', 'Clip end': 'បញ្ចប់កាត់', 'Full video': 'វីដេអូពេញ',
@@ -44,8 +45,8 @@ const khmer = {
   // Format Inspector
   'Format inspector': 'ឧបករណ៍ពិនិត្យទម្រង់មេឌៀ', 'Choose an exact media stream below or keep automatic Best quality.': 'ជ្រើសរើសខ្សែទិន្នន័យជាក់លាក់ខាងក្រោម ឬរក្សាទុកគុណភាពល្អបំផុតដោយស្វ័យប្រវត្តិ។',
   '✓ Automatic Best (Active)': '✓ គុណភាពល្អបំផុតស្វ័យប្រវត្តិ (សកម្ម)', 'Reset to Automatic Best': 'កំណត់ទៅគុណភាពល្អបំផុតស្វ័យប្រវត្តិ',
-  'All Streams': 'ខ្សែទិន្នន័យទាំងអស់', 'Video + Audio': 'វីដេអូ + សំឡេង', 'Video Only': 'វីដេអូតែប៉ុណ្ណោះ', 'Audio Only': 'សំឡេងតែប៉ុណ្ណោះ', Select: 'ជ្រើសរើស', Selected: 'បានជ្រើស',
-  'Direct stream format selected': 'បានជ្រើសរើសទម្រង់ខ្សែទិន្នន័យដោយផ្ទាល់',
+  'All Streams': 'ខ្សែទិន្នន័យទាំងអស់', 'Video + Audio': 'វីដេអូ + សំឡេង', 'Video Only': 'វីដេអូតែប៉ុណ្ណោះ', 'Audio Only': 'សំឡេងតែប៉ុណ្ណោះ', Select: 'ជ្រើសរើស', Selected: 'បានជ្រើស', Active: 'សកម្ម',
+  'Direct stream format selected': 'បានជ្រើសរើសទម្រង់ខ្សែទិន្នន័យដោយផ្ទាល់', 'Download this format': 'ទាញយកទម្រង់នេះ', 'Direct download': 'ទាញយកផ្ទាល់',
 
   // Media Card & Actions
   'View Full': 'មើលរូបពេញ', 'View full-size': 'មើលរូបភាពពេញ', 'Save Thumbnail': 'រក្សាទុករូបតំណាង', 'Saving…': 'កំពុងរក្សាទុក…',
@@ -245,7 +246,16 @@ function App() {
   const [conversions, setConversions] = useState([])
   const [viewingThumbnail, setViewingThumbnail] = useState(null)
   const [downloadingThumb, setDownloadingThumb] = useState(false)
+  const mediaSectionRef = useRef(null)
   const t = value => settingsDraft?.language === 'Khmer' ? (khmer[value] || value) : value
+
+  useEffect(() => {
+    if (media && mediaSectionRef.current) {
+      setTimeout(() => {
+        mediaSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 80)
+    }
+  }, [media])
 
   useEffect(() => {
     waitForApi().then(async desktop => {
@@ -296,7 +306,7 @@ function App() {
     return () => clearTimeout(timer)
   }, [toast])
 
-  const options = () => ({ kind, quality, format, formatId, startTime, endTime, saveLocation: settingsDraft?.saveLocation, subtitleLanguage: settingsDraft?.subtitleLanguage, embedSubtitles: settingsDraft?.embedSubtitles, sponsorBlock: settingsDraft?.sponsorBlock, splitChapters: settingsDraft?.splitChapters })
+  const options = (fid = formatId) => ({ kind, quality, format, formatId: fid, startTime, endTime, saveLocation: settingsDraft?.saveLocation, subtitleLanguage: settingsDraft?.subtitleLanguage, embedSubtitles: settingsDraft?.embedSubtitles, sponsorBlock: settingsDraft?.sponsorBlock, splitChapters: settingsDraft?.splitChapters })
   const waitingIds = queue.filter(item => item.selected && item.status === 'Waiting').map(item => item.id)
   const active = queue.filter(item => !['Completed'].includes(item.status))
 
@@ -318,14 +328,15 @@ function App() {
     } catch (error) { setStatus(errorText(error)) } finally { setBusy(false) }
   }
 
-  async function downloadNow() {
+  async function downloadNow(targetFormatId) {
+    const activeFormatId = typeof targetFormatId === 'string' ? targetFormatId : formatId
     if (media?.entries?.length && playlistSelection.length === 0) return setStatus('Select at least one video first. Analyze never starts a download.')
     try {
       setBusy(true)
       const sources = media?.entries?.length
         ? media.entries.filter((_, index) => playlistSelection.includes(index))
         : [{ url: media?.url || url, title: media?.title, platform: media?.platform }]
-      const added = await api.add_urls(sources, options())
+      const added = await api.add_urls(sources, options(activeFormatId))
       const result = await api.start_downloads(added.ids)
       if (!result.started) throw new Error(result.message)
       setPage('Downloads'); setDownloadTab('Current'); setToast(`${result.count} download${result.count === 1 ? '' : 's'} started`)
@@ -333,7 +344,24 @@ function App() {
   }
 
   async function paste() {
-    try { setUrl(await navigator.clipboard.readText()) } catch { setToast('Press Ctrl+V to paste the link') }
+    try {
+      let text = ''
+      if (api?.read_clipboard_text) {
+        text = await api.read_clipboard_text()
+      }
+      if (!text && navigator?.clipboard?.readText) {
+        try { text = await navigator.clipboard.readText() } catch { /* Ignore */ }
+      }
+      text = (text || '').trim()
+      if (text) {
+        setUrl(text)
+        setToast(t('Link pasted from clipboard'))
+      } else {
+        setToast(t('Clipboard is empty. Copy a link first (Ctrl+C)'))
+      }
+    } catch {
+      setToast(t('Press Ctrl+V to paste the link'))
+    }
   }
 
   async function saveThumbnailNow(thumbUrl = media?.thumbnail, title = media?.title) {
@@ -590,6 +618,123 @@ function App() {
             </div>
           </section>
 
+          {media && (
+            <div ref={mediaSectionRef} className="analyzed-media-container">
+              <Card className="media-card">
+                <div className="media-preview">
+                  <div className="thumb-container">
+                    <div className="thumb-wrap clickable" onClick={() => media.thumbnail && setViewingThumbnail(media.thumbnail)} title="Click to view full-size thumbnail">
+                      {media.thumbnail ? <img src={media.thumbnail} alt={media.title}/> : <FileVideo size={48}/>}
+                      {media.thumbnail && <div className="thumb-hover-overlay"><Eye size={22}/><span>{t('View Full')}</span></div>}
+                      <div className="play-circle"><Play fill="currentColor"/></div>
+                    </div>
+                    {media.thumbnail && (
+                      <div className="thumb-actions-bar">
+                        <button type="button" className="thumb-btn view-btn" onClick={() => setViewingThumbnail(media.thumbnail)} title={t('View full-size')}>
+                          <Eye size={13}/> {t('View Full')}
+                        </button>
+                        <button type="button" className="thumb-btn download-btn" onClick={() => saveThumbnailNow(media.thumbnail, media.title)} disabled={downloadingThumb} title={t('Download thumbnail image to your computer')}>
+                          <Download size={13}/> {downloadingThumb ? t('Saving…') : t('Save Thumbnail')}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div className="media-info">
+                    <div className="media-kicker">{media.platform}</div>
+                    <h2>{media.title}</h2>
+                    <p className="creator">{media.creator}</p>
+                    <div className="meta">
+                      <span><Clock3/> {duration(media.duration)}</span>
+                      <span><Activity/> {compactNumber(media.views)} views</span>
+                      {media.entries.length > 0 && <span><ListChecks/> {media.entries.length} videos</span>}
+                      <span><Captions/> {media.subtitles?.length || 0} subtitle tracks</span>
+                      <span><ListVideo/> {media.chapters?.length || 0} chapters</span>
+                    </div>
+                    <p className="description">{media.description}</p>
+                    <div className="media-ai-actions">
+                      <Button icon={MessageCircle} onClick={() => runHomeAiSkill('summary')} disabled={Boolean(homeAiBusy)}>
+                        {homeAiBusy === 'summary' ? t('Summarizing…') : t('Quick summary')}
+                      </Button>
+                      <Button icon={BrainCircuit} variant="primary" onClick={() => runHomeAiSkill('deep')} disabled={Boolean(homeAiBusy)}>
+                        {homeAiBusy === 'deep' ? t('Analyzing deeply…') : t('Deep video analysis')}
+                      </Button>
+                      <Button icon={ImageIcon} onClick={() => runHomeAiSkill('thumbnail-review')} disabled={Boolean(homeAiBusy) || !media.thumbnail}>
+                        {homeAiBusy === 'thumbnail-review' ? t('Reviewing thumbnail…') : t('Thumbnail review')}
+                      </Button>
+                      <Button icon={WandSparkles} onClick={() => runHomeAiSkill('thumbnail-prompt')} disabled={Boolean(homeAiBusy) || !media.thumbnail}>
+                        {homeAiBusy === 'thumbnail-prompt' ? t('Generating prompt…') : t('Thumbnail prompt')}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              {media?.formats?.length > 0 && (
+                <FormatInspector
+                  formats={media.formats}
+                  formatId={formatId}
+                  setFormatId={setFormatId}
+                  onDownload={downloadNow}
+                  t={t}
+                />
+              )}
+
+              {homeAiResult && (
+                <Card className="home-ai-result">
+                  <div className="card-title">
+                    <div>
+                      <span className="section-icon purple"><FontAwesomeIcon icon={faWandMagicSparkles}/></span>
+                      <h2>{homeAiResult.title}</h2>
+                      <p>{t('Generated with your selected AI provider and model.')}</p>
+                    </div>
+                    <Button icon={Copy} onClick={() => { navigator.clipboard.writeText(homeAiResult.text); setToast('AI result copied') }}>
+                      {t('Copy result')}
+                    </Button>
+                  </div>
+                  <div className="ai-result-text">{homeAiResult.text}</div>
+                </Card>
+              )}
+
+              {media?.entries?.length > 0 && (
+                <Card className="playlist-card">
+                  <div className="card-title playlist-heading">
+                    <div>
+                      <h2>{t('Playlist videos')}</h2>
+                      <p>{playlistSelection.length} of {media.entries.length} {t('selected · click any video to select or deselect it')}</p>
+                    </div>
+                    <div className="button-row">
+                      <Button icon={Check} onClick={() => setPlaylistSelection(media.entries.map((_, index) => index))}>{t('Select all')}</Button>
+                      <Button icon={X} onClick={() => setPlaylistSelection([])}>{t('Deselect all')}</Button>
+                    </div>
+                  </div>
+                  <div className="playlist-grid">
+                    {media.entries.map((item, index) => (
+                      <button
+                        key={`${item.url}-${index}`}
+                        type="button"
+                        aria-pressed={playlistSelection.includes(index)}
+                        className={`playlist-item ${playlistSelection.includes(index) ? 'selected' : ''}`}
+                        onClick={() => setPlaylistSelection(list => list.includes(index) ? list.filter(value => value !== index) : [...list, index])}
+                      >
+                        <div className="playlist-thumb">
+                          {item.thumbnail ? <img src={item.thumbnail} alt=""/> : <div className="playlist-placeholder"><Play/></div>}
+                          <span className="playlist-duration">{duration(item.duration)}</span>
+                        </div>
+                        <div className="playlist-copy">
+                          <strong>{item.title}</strong>
+                          <span>{item.platform || media.platform}</span>
+                        </div>
+                        <div className="check-dot">
+                          {playlistSelection.includes(index) && <Check size={14}/>}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </Card>
+              )}
+            </div>
+          )}
+
           <div className="home-control-grid two-columns">
             <Card className="home-settings-card compact-card">
               <div className="card-title compact">
@@ -641,21 +786,6 @@ function App() {
             </Card>
           </div>
 
-          {media && <Card className="media-card"><div className="media-preview"><div className="thumb-container"><div className="thumb-wrap clickable" onClick={() => media.thumbnail && setViewingThumbnail(media.thumbnail)} title="Click to view full-size thumbnail">{media.thumbnail ? <img src={media.thumbnail} alt={media.title}/> : <FileVideo size={48}/>}{media.thumbnail && <div className="thumb-hover-overlay"><Eye size={22}/><span>{t('View Full')}</span></div>}<div className="play-circle"><Play fill="currentColor"/></div></div>{media.thumbnail && <div className="thumb-actions-bar"><button type="button" className="thumb-btn view-btn" onClick={() => setViewingThumbnail(media.thumbnail)} title={t('View full-size')}><Eye size={13}/> {t('View Full')}</button><button type="button" className="thumb-btn download-btn" onClick={() => saveThumbnailNow(media.thumbnail, media.title)} disabled={downloadingThumb} title={t('Download thumbnail image to your computer')}><Download size={13}/> {downloadingThumb ? t('Saving…') : t('Save Thumbnail')}</button></div>}</div><div className="media-info"><div className="media-kicker">{media.platform}</div><h2>{media.title}</h2><p className="creator">{media.creator}</p><div className="meta"><span><Clock3/> {duration(media.duration)}</span><span><Activity/> {compactNumber(media.views)} views</span>{media.entries.length > 0 && <span><ListChecks/> {media.entries.length} videos</span>}<span><Captions/> {media.subtitles?.length || 0} subtitle tracks</span><span><ListVideo/> {media.chapters?.length || 0} chapters</span></div><p className="description">{media.description}</p><div className="media-ai-actions"><Button icon={MessageCircle} onClick={() => runHomeAiSkill('summary')} disabled={Boolean(homeAiBusy)}>{homeAiBusy === 'summary' ? t('Summarizing…') : t('Quick summary')}</Button><Button icon={BrainCircuit} variant="primary" onClick={() => runHomeAiSkill('deep')} disabled={Boolean(homeAiBusy)}>{homeAiBusy === 'deep' ? t('Analyzing deeply…') : t('Deep video analysis')}</Button><Button icon={ImageIcon} onClick={() => runHomeAiSkill('thumbnail-review')} disabled={Boolean(homeAiBusy) || !media.thumbnail}>{homeAiBusy === 'thumbnail-review' ? t('Reviewing thumbnail…') : t('Thumbnail review')}</Button><Button icon={WandSparkles} onClick={() => runHomeAiSkill('thumbnail-prompt')} disabled={Boolean(homeAiBusy) || !media.thumbnail}>{homeAiBusy === 'thumbnail-prompt' ? t('Generating prompt…') : t('Thumbnail prompt')}</Button></div></div></div></Card>}
-
-          {media?.formats?.length > 0 && (
-            <FormatInspector
-              formats={media.formats}
-              formatId={formatId}
-              setFormatId={setFormatId}
-              t={t}
-            />
-          )}
-
-          {homeAiResult && <Card className="home-ai-result"><div className="card-title"><div><span className="section-icon purple"><FontAwesomeIcon icon={faWandMagicSparkles}/></span><h2>{homeAiResult.title}</h2><p>{t('Generated with your selected AI provider and model.')}</p></div><Button icon={Copy} onClick={() => { navigator.clipboard.writeText(homeAiResult.text); setToast('AI result copied') }}>{t('Copy result')}</Button></div><div className="ai-result-text">{homeAiResult.text}</div></Card>}
-
-          {media?.entries?.length > 0 && <Card className="playlist-card"><div className="card-title playlist-heading"><div><h2>{t('Playlist videos')}</h2><p>{playlistSelection.length} of {media.entries.length} {t('selected · click any video to select or deselect it')}</p></div><div className="button-row"><Button icon={Check} onClick={() => setPlaylistSelection(media.entries.map((_, index) => index))}>{t('Select all')}</Button><Button icon={X} onClick={() => setPlaylistSelection([])}>{t('Deselect all')}</Button></div></div><div className="playlist-grid">{media.entries.map((item, index) => <button key={`${item.url}-${index}`} type="button" aria-pressed={playlistSelection.includes(index)} className={`playlist-item ${playlistSelection.includes(index) ? 'selected' : ''}`} onClick={() => setPlaylistSelection(list => list.includes(index) ? list.filter(value => value !== index) : [...list, index])}><div className="playlist-thumb">{item.thumbnail ? <img src={item.thumbnail} alt=""/> : <div className="playlist-placeholder"><Play/></div>}<span className="playlist-duration">{duration(item.duration)}</span></div><div className="playlist-copy"><strong>{item.title}</strong><span>{item.platform || media.platform}</span></div><div className="check-dot">{playlistSelection.includes(index) && <Check size={14}/>}</div></button>)}</div></Card>}
-
         </>}
 
         {page === 'Downloads' && <DownloadsPage active={active} history={history} tab={downloadTab} setTab={setDownloadTab} api={api} running={running}/>} 
@@ -697,7 +827,7 @@ function App() {
   </div></I18nContext.Provider>
 }
 
-function FormatInspector({ formats, formatId, setFormatId, t }) {
+function FormatInspector({ formats, formatId, setFormatId, onDownload, t }) {
   const [filter, setFilter] = useState('all')
 
   const processed = useMemo(() => {
@@ -823,15 +953,22 @@ function FormatInspector({ formats, formatId, setFormatId, t }) {
             </div>
 
             <div className="format-select-action">
-              {formatId === item.id ? (
-                <span className="format-selected-check"><Check size={14} /> {t('Selected')}</span>
-              ) : (
+              <button
+                type="button"
+                className={`format-row-btn ${formatId === item.id ? 'active' : ''}`}
+                onClick={e => { e.stopPropagation(); setFormatId(item.id); }}
+                title={formatId === item.id ? t('Selected') : t('Select')}
+              >
+                {formatId === item.id ? <><Check size={13} /> {t('Selected')}</> : t('Select')}
+              </button>
+              {onDownload && (
                 <button
                   type="button"
-                  className="format-row-btn"
-                  onClick={e => { e.stopPropagation(); setFormatId(item.id); }}
+                  className="format-row-btn download-direct-btn"
+                  onClick={e => { e.stopPropagation(); setFormatId(item.id); onDownload(item.id); }}
+                  title={t('Download this format')}
                 >
-                  {t('Select')}
+                  <Download size={13} /> {t('Download')}
                 </button>
               )}
             </div>

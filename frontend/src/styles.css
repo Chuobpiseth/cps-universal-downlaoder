@@ -1008,7 +1008,7 @@ label { display: grid; gap: 7px; color: var(--muted); font-size: 12px; font-weig
 
 .format-list-row {
   display: grid;
-  grid-template-columns: 180px 1fr 90px 120px 105px;
+  grid-template-columns: 170px 1fr 85px 115px 175px;
   align-items: center;
   gap: 14px;
   padding: 10px 14px;
@@ -1183,8 +1183,31 @@ label { display: grid; gap: 7px; color: var(--muted); font-size: 12px; font-weig
   color: var(--muted);
 }
 
+.analyzed-media-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 18px;
+  margin-bottom: 20px;
+  animation: fadeInMedia 0.35s ease-out;
+}
+
+@keyframes fadeInMedia {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .format-select-action {
-  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
 }
 
 .format-selected-check {
@@ -1209,12 +1232,34 @@ label { display: grid; gap: 7px; color: var(--muted); font-size: 12px; font-weig
   color: var(--text);
   cursor: pointer;
   transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .format-row-btn:hover {
   border-color: var(--primary);
   color: var(--primary);
   background: var(--blue-soft);
+}
+
+.format-row-btn.active {
+  border-color: #10b981;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.format-row-btn.download-direct-btn {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+}
+
+.format-row-btn.download-direct-btn:hover {
+  background: var(--blue-dark);
+  border-color: var(--blue-dark);
+  color: #ffffff;
+  transform: translateY(-1px);
 }
 
 :root[data-theme="liquid-glass"] .format-row-btn {
@@ -1229,13 +1274,30 @@ label { display: grid; gap: 7px; color: var(--muted); font-size: 12px; font-weig
   background: rgba(56, 189, 248, 0.2);
 }
 
+:root[data-theme="liquid-glass"] .format-row-btn.active {
+  border-color: #34d399;
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.22);
+}
+
+:root[data-theme="liquid-glass"] .format-row-btn.download-direct-btn {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.85), rgba(99, 102, 241, 0.85));
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+:root[data-theme="liquid-glass"] .format-row-btn.download-direct-btn:hover {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 1), rgba(99, 102, 241, 1));
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.4);
+}
+
 .toast { position: fixed; right: 24px; bottom: 24px; z-index: 20; display: flex; align-items: center; gap: 9px; color: #fff; background: #17243a; padding: 13px 17px; border-radius: 13px; box-shadow: 0 14px 38px rgba(0,0,0,.3); font-size: 12px; font-weight: 650; animation: toast-in .25s ease; }@keyframes toast-in { from { opacity: 0; transform: translateY(12px); } }
 .splash { height: 100vh; display: flex; flex-direction: column; gap: 16px; align-items: center; justify-content: center; color: var(--muted); }.splash .logo-mark { width: 72px; height: 72px; border-radius: 22px; }.spin { animation: spin 1s linear infinite; }@keyframes spin { to { transform: rotate(360deg); } }
 
 @media (max-width: 1050px) {
   .app { grid-template-columns: 82px minmax(0,1fr); }.brand-copy, .sidebar nav span, .sidebar-footer span, .sidebar-footer small { display: none; }.brand { justify-content: center; }.sidebar nav button { padding: 0; justify-content: center; }
   .content { padding: 22px 22px 52px; }.hero { grid-template-columns: 1fr 190px; }.hero-orbit { transform: scale(.8); }.home-control-grid { grid-template-columns: 1fr 1fr; }.home-control-grid.two-columns { grid-template-columns: 1fr; }.home-link-card { grid-column: 1 / -1; }.settings-columns { grid-template-columns: 1fr; }.wide-card { grid-column: auto; }.extension-grid, .ai-fields, .update-layout { grid-template-columns: 1fr; }
-  .format-list-row { grid-template-columns: 150px 1fr 80px 100px 90px; gap: 10px; }
+  .format-list-row { grid-template-columns: 150px 1fr 80px 100px 165px; gap: 10px; }
 }
 @media (max-width: 760px) {
   body { overflow: hidden; }.app { display: grid; grid-template-columns: 1fr; grid-template-rows: minmax(0,1fr); }.app main { height: 100vh; grid-template-rows: 70px minmax(0,1fr); }.sidebar { position: fixed; z-index: 30; bottom: 0; left: 0; right: 0; height: 68px; padding: 7px; }.brand, .sidebar-footer { display: none; }.sidebar nav { height: 100%; display: grid; grid-template-columns: repeat(9,1fr); gap: 4px; }.sidebar nav button { height: 53px; border: 0; background: transparent; flex-direction: column; gap: 2px; font-size: 9px; }.sidebar nav span { display: block; opacity: 1; width: auto; }.sidebar nav svg { width: 18px; }.topbar-left strong, .topbar .pro-badge { display: none; }.topbar-actions { margin-left: auto; }.select-shell { width: 112px; min-width: 0; }.content { padding: 16px 14px 94px; }.hero { grid-template-columns: 1fr; padding: 25px 22px; min-height: 185px; }.hero-orbit { display: none; }.home-control-grid, .home-control-grid.two-columns, .media-preview, .settings-grid, .ai-layout, .converter-layout { grid-template-columns: 1fr; }.home-link-card { grid-column: auto; }.field-grid, .field-grid.three, .ai-fields.gemini, .ai-skill-grid { grid-template-columns: 1fr; }.media-preview { gap: 15px; }.playlist-grid { grid-template-columns: 1fr; }.page-header { align-items: flex-start; flex-direction: column; gap: 12px; }.page-header h1 { font-size: 26px; }.card { padding: 17px; }.chat-card { min-height: 590px; }.topbar { padding: 0 10px; }.platform-row { gap: 6px; }.platform-logo { padding: 4px 7px; }.extension-card .card-title, .ai-settings-card .card-title { align-items: flex-start; flex-direction: column; }
@@ -1243,7 +1305,7 @@ label { display: grid; gap: 7px; color: var(--muted); font-size: 12px; font-weig
   .hero-search-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
   .hero-search-actions .hero-btn { width: 100%; }
   .format-list-row { grid-template-columns: 1fr; gap: 8px; padding: 12px; }
-  .format-select-action { text-align: left; margin-top: 4px; }
+  .format-select-action { justify-content: flex-start; margin-top: 4px; }
 }
 
 @media (max-width: 480px) {
