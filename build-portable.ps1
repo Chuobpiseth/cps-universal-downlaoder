@@ -5,7 +5,7 @@ $deno = Join-Path $parent 'tools\deno.exe'
 $python = 'python'
 $venv = Join-Path $project '.venv'
 $frontend = Join-Path $project 'frontend'
-$dist = Join-Path $project 'build-v1.2.3'
+$dist = Join-Path $project 'build-v1.2.4'
 $release = Join-Path $project 'release'
 $appName = 'CPSUniversalDownloader.exe'
 
@@ -52,10 +52,10 @@ if ($LASTEXITCODE -ne 0) { throw 'Portable executable build failed.' }
 
 $portable = Join-Path $dist $appName
 Move-Item -LiteralPath (Join-Path $dist 'CPSUniversalDownloaderReact.exe') -Destination $portable
-$releaseExe = Join-Path $release 'CPS-Universal-Downloader-v1.2.3-Portable.exe'
+$releaseExe = Join-Path $release 'CPS-Universal-Downloader-v1.2.4-Portable.exe'
 Copy-Item -LiteralPath $portable -Destination $releaseExe -Force
 
-$zip = Join-Path $release 'CPS-Universal-Downloader-v1.2.3-Windows-x64-Single-EXE.zip'
+$zip = Join-Path $release 'CPS-Universal-Downloader-v1.2.4-Windows-x64-Single-EXE.zip'
 if (Test-Path -LiteralPath $zip) { Remove-Item -LiteralPath $zip -Force }
 Compress-Archive -LiteralPath $portable -DestinationPath $zip -CompressionLevel Optimal
 Write-Host "Single-file portable app: $portable"

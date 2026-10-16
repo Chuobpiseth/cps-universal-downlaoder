@@ -28,7 +28,7 @@ from urllib.parse import parse_qs, quote, urlparse
 
 
 APP_NAME = "CPS Universal Downloader Premium"
-APP_VERSION = "1.2.3"
+APP_VERSION = "1.2.4"
 GITHUB_REPOSITORY = "Chuobpiseth/cps-universal-downlaoder"
 GITHUB_RELEASE_API = f"https://api.github.com/repos/{GITHUB_REPOSITORY}/releases/latest"
 CODECRAFT_API_BASE = "https://codecraftapi.com/v1"
@@ -118,6 +118,8 @@ def classify_download_error(lines: list[str]) -> dict[str, str]:
         return {"code": "unavailable", "message": "This video is unavailable or has been removed.", "action": "Open the link in your browser or choose another video."}
     if "sign in" in text or "cookies" in text or "login" in text:
         return {"code": "authentication", "message": "This site requires a signed-in browser session.", "action": "Choose browser cookies in Settings, close the browser, then retry."}
+    if "database is locked" in text or ("cookie" in text and ("lock" in text or "could not copy" in text)):
+        return {"code": "cookie-locked", "message": "Browser cookie database is locked while the browser is running.", "action": "Close your browser completely (or set browser cookies to None in Settings), then retry."}
     if "requested format is not available" in text:
         return {"code": "format", "message": "The selected format is unavailable.", "action": "Retry with Best or Auto quality."}
     if "http error 403" in text or "forbidden" in text:
@@ -457,6 +459,35 @@ class DesktopApi:
             return stored_path
         return str(max(candidates, key=lambda candidate: candidate.stat().st_mtime))
 
+    @staticmethod
+    def _find_recent_download(directory: Path, item: dict[str, Any]) -> str:
+        if not directory.is_dir():
+            return ""
+        stem = DesktopApi._safe_stem(str(item.get("title") or ""))
+        item_id = str(item.get("id") or "")
+        now = time.time()
+        candidates: list[tuple[int, float, Path]] = []
+        try:
+            for entry in directory.iterdir():
+                if entry.is_file() and not entry.name.endswith((".part", ".ytdl", ".temp")):
+                    try:
+                        mtime = entry.stat().st_mtime
+                        if now - mtime < 900:
+                            score = 0
+                            if stem and stem.lower() in entry.name.lower():
+                                score += 10
+                            if item_id and item_id in entry.name:
+                                score += 5
+                            candidates.append((score, mtime, entry))
+                    except OSError:
+                        continue
+            if candidates:
+                candidates.sort(key=lambda c: (c[0], c[1]), reverse=True)
+                return str(candidates[0][2])
+        except Exception:
+            pass
+        return ""
+
     def _repair_output_paths(self) -> bool:
         changed = False
         for item in [*self.queue, *self.history]:
@@ -608,6 +639,7 @@ class DesktopApi:
                     "hookCaption": str(options.get("hookCaption") or "")[:500],
                     "startTime": str(options.get("startTime") or "").strip(),
                     "endTime": str(options.get("endTime") or "").strip(),
+                    "saveLocation": str(options.get("saveLocation") or self.settings.get("saveLocation") or Path.home() / "Downloads"),
                     "priority": int(options.get("priority", 3)),
                     "selected": True,
                     "status": "Waiting",
@@ -784,8 +816,8 @@ class DesktopApi:
         if self._stop.is_set():
             self._set_item(item, status="Cancelled")
             return
-        output = Path(self.settings.get("saveLocation") or Path.home() / "Downloads")
-        output.mkdir(parents=True, exist_ok=True)
+        output_dir = Path(item.get("saveLocation") or self.settings.get("saveLocation") or Path.home() / "Downloads").expanduser().resolve()
+        output_dir.mkdir(parents=True, exist_ok=True)
         path_record_dir = DATA_DIR / "job-paths"
         path_record_dir.mkdir(parents=True, exist_ok=True)
         path_record = path_record_dir / f"{item['id']}.txt"
@@ -798,9 +830,11 @@ class DesktopApi:
             "--buffer-size", "64K", "--http-chunk-size", "10M", "--progress-delta", "0.2",
             "--progress-template", "download:download:%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s",
             "--progress-template", "postprocess:postprocess:%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s",
-            "--print", "before_dl:meta:title:%(title)s", "--print", "before_dl:meta:platform:%(extractor_key)s", "--print", "after_move:filepath:%(filepath)s",
+            "--print", "before_dl:meta:title:%(title)s", "--print", "before_dl:meta:platform:%(extractor_key)s",
+            "--print", "after_video:filepath:%(filepath)s",
+            "--print-to-file", "after_video:%(filepath)s", str(path_record),
             "--print-to-file", "after_move:%(filepath)s", str(path_record),
-            "--ffmpeg-location", str(tool_path("ffmpeg.exe").parent), "--windows-filenames", "--trim-filenames", "180", "-P", str(output), "-o", self.settings.get("filenameTemplate") or "%(title)s [%(id)s].%(ext)s",
+            "--ffmpeg-location", str(tool_path("ffmpeg.exe").parent), "--windows-filenames", "--trim-filenames", "180", "-P", str(output_dir), "-o", self.settings.get("filenameTemplate") or "%(title)s [%(id)s].%(ext)s",
         ]
         if self.settings.get("preventDuplicates", True):
             args += ["--download-archive", str(DATA_DIR / "download-archive.txt")]
@@ -873,6 +907,8 @@ class DesktopApi:
                     except (OSError, IndexError):
                         recorded_path = ""
                 final_path = self._actual_output_path(recorded_path or str(item.get("outputPath") or ""))
+                if not final_path or not Path(final_path).is_file():
+                    final_path = self._find_recent_download(output_dir, item)
                 if final_path and (item.get("smartVertical") or item.get("removeSilence") or item.get("hookCaption")):
                     self._set_item(item, status="Processing", stage="Creating short-form clip")
                     try:
@@ -982,9 +1018,21 @@ class DesktopApi:
         with self._lock:
             for key, value in values.items():
                 if key in allowed:
-                    self.settings[key] = value
+                    if key in {"saveLocation", "conversionLocation"} and isinstance(value, str):
+                        cleaned = value.strip().strip('"').strip("'")
+                        if cleaned:
+                            try:
+                                resolved = Path(cleaned).expanduser().resolve()
+                                resolved.mkdir(parents=True, exist_ok=True)
+                                self.settings[key] = str(resolved)
+                            except Exception:
+                                self.settings[key] = cleaned
+                        else:
+                            self.settings[key] = value
+                    else:
+                        self.settings[key] = value
             self.settings["parallelDownloads"] = max(1, min(4, int(self.settings.get("parallelDownloads", 2))))
-            self.settings["concurrentFragments"] = max(1, min(16, int(self.settings.get("concurrentFragments", 4))))
+            self.settings["concurrentFragments"] = max(1, min(16, int(self.settings.get("concurrentFragments", 8))))
             self._write_json(self._settings_file, self.settings)
         key = str(values.get("geminiApiKey", "")).strip()
         if key:

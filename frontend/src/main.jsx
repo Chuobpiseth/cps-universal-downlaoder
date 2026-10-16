@@ -10,7 +10,8 @@ import {
   Sun, Trash2, UploadCloud, WandSparkles, X, Zap, Cable, KeyRound, Server, Wifi,
   BrainCircuit, Image as ImageIcon
   , Wrench, Captions, Scissors, ListVideo, RefreshCw, MonitorUp,
-  RotateCcw, PackageOpen, Save, Film, Coffee, ExternalLink, Heart
+  RotateCcw, PackageOpen, Save, Film, Coffee, ExternalLink, Heart,
+  Link2, Volume2, Video
 } from 'lucide-react'
 import './styles.css'
 
@@ -221,7 +222,7 @@ function App() {
     return () => clearTimeout(timer)
   }, [toast])
 
-  const options = () => ({ kind, quality, format, formatId, startTime, endTime, subtitleLanguage: settingsDraft?.subtitleLanguage, embedSubtitles: settingsDraft?.embedSubtitles, sponsorBlock: settingsDraft?.sponsorBlock, splitChapters: settingsDraft?.splitChapters })
+  const options = () => ({ kind, quality, format, formatId, startTime, endTime, saveLocation: settingsDraft?.saveLocation, subtitleLanguage: settingsDraft?.subtitleLanguage, embedSubtitles: settingsDraft?.embedSubtitles, sponsorBlock: settingsDraft?.sponsorBlock, splitChapters: settingsDraft?.splitChapters })
   const waitingIds = queue.filter(item => item.selected && item.status === 'Waiting').map(item => item.id)
   const active = queue.filter(item => !['Completed'].includes(item.status))
 
@@ -285,7 +286,12 @@ function App() {
   }
 
   async function browse() {
-    const path = await api.choose_folder(settingsDraft.saveLocation); if (path) setSettingsDraft(current => ({ ...current, saveLocation: path }))
+    const path = await api.choose_folder(settingsDraft.saveLocation)
+    if (path) {
+      setSettingsDraft(current => ({ ...current, saveLocation: path }))
+      await api.save_settings({ saveLocation: path })
+      setToast('Download folder updated')
+    }
   }
 
   async function browseConversion() {
@@ -449,19 +455,128 @@ function App() {
           </div>
         )}
         {page === 'Home' && <>
-          <section className="hero"><div><span className="eyebrow"><Sparkles size={15}/> {t('Fast • private • portable')}</span><h1>{t('More than downloads.')} <em>{t('Create without limits.')}</em></h1><p>{t('Download, convert, and understand video with AI—all in one private creative workspace.')}</p><div className="platform-row"><PlatformLogo name="youtube" label="YouTube"/><PlatformLogo name="tiktok" label="TikTok · Douyin"/><PlatformLogo name="facebook" label="Facebook"/><span className="more-platforms">SharePoint + 1,000 sites</span></div></div><div className="hero-orbit"><div className="orbit-ring"/><div className="hero-download"><FontAwesomeIcon icon={faDownload}/></div></div></section>
+          <section className="hero">
+            <div className="hero-content-wrap">
+              <span className="eyebrow"><Sparkles size={15}/> {t('Fast • private • portable')}</span>
+              <h1>{t('More than downloads.')} <em>{t('Create without limits.')}</em></h1>
+              <p>{t('Download, convert, and understand video with AI—all in one private creative workspace.')}</p>
+              <div className="platform-row">
+                <PlatformLogo name="youtube" label="YouTube"/>
+                <PlatformLogo name="tiktok" label="TikTok · Douyin"/>
+                <PlatformLogo name="facebook" label="Facebook"/>
+                <span className="more-platforms">SharePoint + 1,000 sites</span>
+              </div>
 
-          <div className="home-control-grid">
-            <Card className="link-card home-link-card"><div className="card-title"><div><span className="section-icon cyan"><FontAwesomeIcon icon={faClipboard}/></span><h2>{t('Paste a link to get started')}</h2><p>{t('One URL, a playlist, or multiple links.')}</p></div></div><textarea className="home-url" value={url} onChange={event => setUrl(event.target.value)} placeholder="https://youtube.com/watch?v=…" rows={3}/><div className="home-link-actions"><Button icon={Clipboard} onClick={paste}>Paste</Button><Button icon={Search} variant="success" onClick={analyze} disabled={busy}>{busy ? t('Analyzing') + '…' : 'Analyze only'}</Button><IconButton aria-label="Clear link" onClick={() => { setUrl(''); setMedia(null); setPlaylistSelection([]); setHomeAiResult(null); setStatus('Ready') }}><X/></IconButton></div>{busy && <div className="analysis-progress" aria-label="Analyzing"><span/></div>}<div className="status-line">{busy && <LoaderCircle className="spin" size={15}/>}<span>{status}</span></div></Card>
+              <div className="hero-search-box">
+                <div className="hero-search-bar">
+                  <div className="hero-search-input-wrap">
+                    <Link2 size={18} className="hero-search-icon" />
+                    <input
+                      className="hero-search-input"
+                      value={url}
+                      onChange={event => setUrl(event.target.value)}
+                      onKeyDown={event => { if (event.key === 'Enter') analyze() }}
+                      placeholder="Paste video URL, playlist, or multiple links here (YouTube, TikTok, Facebook…)"
+                    />
+                    {url && (
+                      <button
+                        type="button"
+                        className="hero-clear-btn"
+                        onClick={() => { setUrl(''); setMedia(null); setPlaylistSelection([]); setHomeAiResult(null); setStatus('Ready') }}
+                        title="Clear link"
+                      >
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
+                  <div className="hero-search-actions">
+                    <Button icon={Clipboard} onClick={paste} className="hero-btn paste-btn">Paste</Button>
+                    <Button icon={Search} variant="success" onClick={analyze} disabled={busy} className="hero-btn analyze-btn">
+                      {busy ? t('Analyzing') + '…' : 'Analyze only'}
+                    </Button>
+                  </div>
+                </div>
+                {busy && (
+                  <div className="hero-analysis-progress">
+                    <div className="analysis-progress" aria-label="Analyzing"><span/></div>
+                  </div>
+                )}
+                {status && (
+                  <div className="hero-status-line">
+                    {busy ? <LoaderCircle className="spin" size={14} /> : <Check size={14} />}
+                    <span>{status}</span>
+                  </div>
+                )}
+              </div>
+            </div>
 
-            <Card className="home-settings-card"><div className="card-title compact"><div><span className="section-icon purple"><Settings/></span><h2>{t('Download settings')}</h2></div></div><label>{t('Type')}</label><div className="segmented"><button className={kind === 'Video' ? 'selected' : ''} onClick={() => { setKind('Video'); if (!videoFormats.includes(format)) setFormat('MP4') }}><FileVideo/> {t('Video')}</button><button className={kind === 'Audio' ? 'selected' : ''} onClick={() => { setKind('Audio'); if (!audioFormats.includes(format)) setFormat('MP3') }}><FileAudio/> {t('Audio')}</button></div><div className="field-grid"><label>{t('Quality')}<select value={quality} onChange={event => { setQuality(event.target.value); setFormatId('') }} disabled={kind === 'Audio'}>{qualities.map(value => <option key={value}>{value}</option>)}</select></label><label>{t('Format')}<select value={format} onChange={event => setFormat(event.target.value)}>{(kind === 'Video' ? videoFormats : audioFormats).map(value => <option key={value}>{value}</option>)}</select></label></div><div className="field-grid clip-fields"><label>{t('Clip start')}<input value={startTime} onChange={event => setStartTime(event.target.value)} placeholder="00:00"/></label><label>{t('Clip end')}<input value={endTime} onChange={event => setEndTime(event.target.value)} placeholder="Full video"/></label></div></Card>
+            <div className="hero-orbit">
+              <div className="orbit-ring"/>
+              <div className="hero-download"><FontAwesomeIcon icon={faDownload}/></div>
+            </div>
+          </section>
 
-            <Card className="home-presets-card"><div className="card-title compact"><div><span className="section-icon orange"><FontAwesomeIcon icon={faBolt}/></span><h2>Quick presets</h2></div></div><Button icon={Download} variant="primary" className="home-download-button" onClick={downloadNow} disabled={busy || (!media && !url) || Boolean(media?.entries?.length && playlistSelection.length === 0)}>{busy ? 'Working…' : media?.entries?.length ? `Download ${playlistSelection.length} selected` : 'Download now'}</Button><div className="preset-grid"><button onClick={() => { setKind('Video'); setQuality('Best'); setFormat('MP4') }}><Sparkles/> Best</button><button onClick={() => { setKind('Video'); setQuality('1080p'); setFormat('MP4') }}><Zap/> 1080p</button><button onClick={() => { setKind('Video'); setQuality('720p'); setFormat('MP4') }}><Gauge/> Small</button><button onClick={() => { setKind('Audio'); setFormat('MP3') }}><FontAwesomeIcon icon={faMusic}/> MP3</button></div><p className="analyze-safety">Analyze only previews media. Downloads start only after you select videos and click this button.</p><div className="save-location"><span>Saving to</span><strong>{settingsDraft.saveLocation}</strong><IconButton onClick={() => api.open_download_folder()}><FolderOpen/></IconButton></div></Card>
+          <div className="home-control-grid two-columns">
+            <Card className="home-settings-card compact-card">
+              <div className="card-title compact">
+                <div>
+                  <span className="section-icon purple"><Settings/></span>
+                  <h2>{t('Download settings')}</h2>
+                </div>
+              </div>
+              <label>{t('Type')}</label>
+              <div className="segmented">
+                <button className={kind === 'Video' ? 'selected' : ''} onClick={() => { setKind('Video'); if (!videoFormats.includes(format)) setFormat('MP4') }}><FileVideo/> {t('Video')}</button>
+                <button className={kind === 'Audio' ? 'selected' : ''} onClick={() => { setKind('Audio'); if (!audioFormats.includes(format)) setFormat('MP3') }}><FileAudio/> {t('Audio')}</button>
+              </div>
+              <div className="field-grid">
+                <label>{t('Quality')}<select value={quality} onChange={event => { setQuality(event.target.value); setFormatId('') }} disabled={kind === 'Audio'}>{qualities.map(value => <option key={value}>{value}</option>)}</select></label>
+                <label>{t('Format')}<select value={format} onChange={event => setFormat(event.target.value)}>{(kind === 'Video' ? videoFormats : audioFormats).map(value => <option key={value}>{value}</option>)}</select></label>
+              </div>
+              <div className="field-grid clip-fields">
+                <label>{t('Clip start')}<input value={startTime} onChange={event => setStartTime(event.target.value)} placeholder="00:00"/></label>
+                <label>{t('Clip end')}<input value={endTime} onChange={event => setEndTime(event.target.value)} placeholder="Full video"/></label>
+              </div>
+            </Card>
+
+            <Card className="home-presets-card compact-card">
+              <div className="card-title compact">
+                <div>
+                  <span className="section-icon orange"><FontAwesomeIcon icon={faBolt}/></span>
+                  <h2>Quick presets</h2>
+                </div>
+              </div>
+              <Button icon={Download} variant="primary" className="home-download-button" onClick={downloadNow} disabled={busy || (!media && !url) || Boolean(media?.entries?.length && playlistSelection.length === 0)}>
+                {busy ? 'Working…' : media?.entries?.length ? `Download ${playlistSelection.length} selected` : 'Download now'}
+              </Button>
+              <div className="preset-grid">
+                <button onClick={() => { setKind('Video'); setQuality('Best'); setFormat('MP4') }}><Sparkles/> Best</button>
+                <button onClick={() => { setKind('Video'); setQuality('1080p'); setFormat('MP4') }}><Zap/> 1080p</button>
+                <button onClick={() => { setKind('Video'); setQuality('720p'); setFormat('MP4') }}><Gauge/> Small</button>
+                <button onClick={() => { setKind('Audio'); setFormat('MP3') }}><FontAwesomeIcon icon={faMusic}/> MP3</button>
+              </div>
+              <p className="analyze-safety">Analyze only previews media. Downloads start only after you select videos and click this button.</p>
+              <div className="save-location">
+                <span>Saving to</span>
+                <strong title={settingsDraft.saveLocation}>{settingsDraft.saveLocation}</strong>
+                <div className="save-location-btns">
+                  <button type="button" className="save-change-folder-btn" onClick={browse} title="Change destination folder">Change</button>
+                  <IconButton onClick={() => api.open_download_folder()} title="Open download folder"><FolderOpen/></IconButton>
+                </div>
+              </div>
+            </Card>
           </div>
 
           {media && <Card className="media-card"><div className="media-preview"><div className="thumb-container"><div className="thumb-wrap clickable" onClick={() => media.thumbnail && setViewingThumbnail(media.thumbnail)} title="Click to view full-size thumbnail">{media.thumbnail ? <img src={media.thumbnail} alt={media.title}/> : <FileVideo size={48}/>}{media.thumbnail && <div className="thumb-hover-overlay"><Eye size={22}/><span>View Full</span></div>}<div className="play-circle"><Play fill="currentColor"/></div></div>{media.thumbnail && <div className="thumb-actions-bar"><button type="button" className="thumb-btn view-btn" onClick={() => setViewingThumbnail(media.thumbnail)} title="View full-size"><Eye size={13}/> View Full</button><button type="button" className="thumb-btn download-btn" onClick={() => saveThumbnailNow(media.thumbnail, media.title)} disabled={downloadingThumb} title="Download thumbnail image to your computer"><Download size={13}/> {downloadingThumb ? 'Saving…' : 'Save Thumbnail'}</button></div>}</div><div className="media-info"><div className="media-kicker">{media.platform}</div><h2>{media.title}</h2><p className="creator">{media.creator}</p><div className="meta"><span><Clock3/> {duration(media.duration)}</span><span><Activity/> {compactNumber(media.views)} views</span>{media.entries.length > 0 && <span><ListChecks/> {media.entries.length} videos</span>}<span><Captions/> {media.subtitles?.length || 0} subtitle tracks</span><span><ListVideo/> {media.chapters?.length || 0} chapters</span></div><p className="description">{media.description}</p><div className="media-ai-actions"><Button icon={MessageCircle} onClick={() => runHomeAiSkill('summary')} disabled={Boolean(homeAiBusy)}>{homeAiBusy === 'summary' ? 'Summarizing…' : 'Quick summary'}</Button><Button icon={BrainCircuit} variant="primary" onClick={() => runHomeAiSkill('deep')} disabled={Boolean(homeAiBusy)}>{homeAiBusy === 'deep' ? 'Analyzing deeply…' : 'Deep video analysis'}</Button><Button icon={ImageIcon} onClick={() => runHomeAiSkill('thumbnail-review')} disabled={Boolean(homeAiBusy) || !media.thumbnail}>{homeAiBusy === 'thumbnail-review' ? 'Reviewing thumbnail…' : 'Thumbnail review'}</Button><Button icon={WandSparkles} onClick={() => runHomeAiSkill('thumbnail-prompt')} disabled={Boolean(homeAiBusy) || !media.thumbnail}>{homeAiBusy === 'thumbnail-prompt' ? 'Generating prompt…' : 'Thumbnail prompt'}</Button></div></div></div></Card>}
 
-          {media?.formats?.length > 0 && <Card><div className="card-title"><div><h2>Format inspector</h2><p>Choose an exact stream or keep automatic Best quality.</p></div><Button icon={X} onClick={() => setFormatId('')}>Use automatic</Button></div><div className="format-grid">{media.formats.slice(0, 18).map(item => <button key={item.id} className={formatId === item.id ? 'selected' : ''} onClick={() => setFormatId(item.id)}><strong>{item.resolution}</strong><span>{item.extension.toUpperCase()} · {item.fps || '—'} FPS · {item.hdr}</span><small>{item.videoCodec} / {item.audioCodec}{item.size ? ` · ${(item.size / 1048576).toFixed(1)} MB` : ''}</small></button>)}</div></Card>}
+          {media?.formats?.length > 0 && (
+            <FormatInspector
+              formats={media.formats}
+              formatId={formatId}
+              setFormatId={setFormatId}
+              t={t}
+            />
+          )}
 
           {homeAiResult && <Card className="home-ai-result"><div className="card-title"><div><span className="section-icon purple"><FontAwesomeIcon icon={faWandMagicSparkles}/></span><h2>{homeAiResult.title}</h2><p>Generated with your selected AI provider and model.</p></div><Button icon={Copy} onClick={() => { navigator.clipboard.writeText(homeAiResult.text); setToast('AI result copied') }}>Copy result</Button></div><div className="ai-result-text">{homeAiResult.text}</div></Card>}
 
@@ -506,6 +621,151 @@ function App() {
     )}
     {toast && <div className="toast"><Check size={18}/>{toast}</div>}
   </div></I18nContext.Provider>
+}
+
+function FormatInspector({ formats, formatId, setFormatId, t }) {
+  const [filter, setFilter] = useState('all')
+
+  const processed = useMemo(() => {
+    return (formats || []).map(item => {
+      const isVideo = item.videoCodec && item.videoCodec !== 'none'
+      const isAudio = item.audioCodec && item.audioCodec !== 'none'
+      const isBoth = isVideo && isAudio
+      const isAudioOnly = !isVideo && (isAudio || item.resolution === 'audio only')
+      const isVideoOnly = isVideo && !isAudio
+      return { ...item, isBoth, isAudioOnly, isVideoOnly }
+    })
+  }, [formats])
+
+  const counts = useMemo(() => ({
+    all: processed.length,
+    both: processed.filter(f => f.isBoth).length,
+    video: processed.filter(f => f.isVideoOnly).length,
+    audio: processed.filter(f => f.isAudioOnly).length
+  }), [processed])
+
+  const filtered = useMemo(() => {
+    if (filter === 'both') return processed.filter(f => f.isBoth)
+    if (filter === 'video') return processed.filter(f => f.isVideoOnly)
+    if (filter === 'audio') return processed.filter(f => f.isAudioOnly)
+    return processed
+  }, [processed, filter])
+
+  return (
+    <Card className="format-inspector-card">
+      <div className="card-title format-inspector-header">
+        <div>
+          <h2>Format inspector</h2>
+          <p>Choose an exact media stream below or keep automatic Best quality.</p>
+        </div>
+        <Button
+          icon={Sparkles}
+          variant={!formatId ? 'primary' : 'soft'}
+          onClick={() => setFormatId('')}
+          className="format-auto-btn"
+        >
+          {!formatId ? '✓ Automatic Best (Active)' : 'Reset to Automatic Best'}
+        </Button>
+      </div>
+
+      <div className="format-filter-bar">
+        <button
+          type="button"
+          className={`format-filter-pill ${filter === 'all' ? 'active' : ''}`}
+          onClick={() => setFilter('all')}
+        >
+          All Streams <span className="filter-count">{counts.all}</span>
+        </button>
+        <button
+          type="button"
+          className={`format-filter-pill ${filter === 'both' ? 'active' : ''}`}
+          onClick={() => setFilter('both')}
+        >
+          <Film size={14} /> Video + Audio <span className="filter-count">{counts.both}</span>
+        </button>
+        <button
+          type="button"
+          className={`format-filter-pill ${filter === 'video' ? 'active' : ''}`}
+          onClick={() => setFilter('video')}
+        >
+          <Video size={14} /> Video Only <span className="filter-count">{counts.video}</span>
+        </button>
+        <button
+          type="button"
+          className={`format-filter-pill ${filter === 'audio' ? 'active' : ''}`}
+          onClick={() => setFilter('audio')}
+        >
+          <Volume2 size={14} /> Audio Only <span className="filter-count">{counts.audio}</span>
+        </button>
+      </div>
+
+      <div className="format-list-container">
+        {filtered.map(item => (
+          <div
+            key={item.id}
+            className={`format-list-row ${formatId === item.id ? 'selected' : ''}`}
+            onClick={() => setFormatId(item.id)}
+          >
+            <div className="format-type-indicator">
+              {item.isBoth ? (
+                <div className="stream-badge-icon complete" title="Complete stream with video and audio">
+                  <Film size={18} />
+                </div>
+              ) : item.isVideoOnly ? (
+                <div className="stream-badge-icon video" title="Video stream only (muted). Download engine merges audio automatically when possible">
+                  <Video size={18} />
+                </div>
+              ) : (
+                <div className="stream-badge-icon audio" title="Audio / music stream only">
+                  <Volume2 size={18} />
+                </div>
+              )}
+              <div className="stream-kind-labels">
+                <span className={`stream-kind-pill ${item.isBoth ? 'complete' : item.isVideoOnly ? 'video' : 'audio'}`}>
+                  {item.isBoth ? 'Video + Audio' : item.isVideoOnly ? 'Video Only' : 'Audio Only'}
+                </span>
+                {item.hdr && item.hdr !== 'SDR' && <span className="stream-hdr-pill">{item.hdr}</span>}
+              </div>
+            </div>
+
+            <div className="format-quality-info">
+              <div className="format-res-line">
+                <strong className="format-res-title">{item.resolution}</strong>
+                {item.fps && <span className="format-fps-tag">{item.fps} FPS</span>}
+              </div>
+              <span className="format-codec-meta">
+                {item.isBoth ? `Codecs: ${item.videoCodec} / ${item.audioCodec}` : item.isVideoOnly ? `Codec: ${item.videoCodec}` : `Codec: ${item.audioCodec}`}
+              </span>
+            </div>
+
+            <div className="format-extension-badge">
+              <span className="ext-pill">.{item.extension.toUpperCase()}</span>
+              <span className="proto-meta">{item.protocol || 'Direct'}</span>
+            </div>
+
+            <div className="format-size-info">
+              <strong>{item.size ? `${(item.size / 1048576).toFixed(1)} MB` : 'Dynamic size'}</strong>
+              <small>{item.bitrate ? `${Math.round(item.bitrate)} kbps` : 'Variable bitrate'}</small>
+            </div>
+
+            <div className="format-select-action">
+              {formatId === item.id ? (
+                <span className="format-selected-check"><Check size={14} /> Selected</span>
+              ) : (
+                <button
+                  type="button"
+                  className="format-row-btn"
+                  onClick={e => { e.stopPropagation(); setFormatId(item.id); }}
+                >
+                  Select
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  )
 }
 
 function DownloadsPage({ active, history, tab, setTab, api, running }) {
@@ -619,7 +879,7 @@ function SettingsPage({ draft, setDraft, browse, browseConversion, save, models,
   async function addGeminiKey() { try { setGeminiKeys(await api.add_gemini_key(newGeminiKey)); setNewGeminiKey('') } catch (error) { setAuthMessage(errorText(error)) } }
   async function removeGeminiKey(id) { setGeminiKeys(await api.remove_gemini_key(id)) }
   return <><PageHeader title="Settings" subtitle="Performance, browser connection, AI, and appearance"/><div className="settings-columns">
-    <Card><h2>{t('Download performance')}</h2><label>{t('Download folder')}<div className="input-action"><input value={draft.saveLocation} readOnly/><Button icon={FolderOpen} onClick={browse}>Browse</Button></div></label><label>Converted files folder<div className="input-action"><input value={draft.conversionLocation} readOnly/><Button icon={FolderOpen} onClick={browseConversion}>Browse</Button></div></label><div className="field-grid"><label>{t('Parallel downloads')}<select value={draft.parallelDownloads} onChange={event => set('parallelDownloads', Number(event.target.value))}>{[1,2,3,4].map(value => <option key={value}>{value}</option>)}</select></label><label>{t('Fragments per download')}<select value={draft.concurrentFragments} onChange={event => set('concurrentFragments', Number(event.target.value))}>{[1,2,4,8,16].map(value => <option key={value}>{value}</option>)}</select></label></div><p className="hint">Download and converted files can use different folders. Choose both locations before saving settings.</p><label>{t('Filename template')}<input value={draft.filenameTemplate} onChange={event => set('filenameTemplate', event.target.value)}/></label><label className="check-label"><input type="checkbox" checked={draft.preventDuplicates} onChange={event => set('preventDuplicates', event.target.checked)}/> {t('Prevent duplicate downloads')}</label></Card>
+    <Card><h2>{t('Download performance')}</h2><label>{t('Download folder')}<div className="input-action"><input value={draft.saveLocation || ''} onChange={event => set('saveLocation', event.target.value)} placeholder="Choose or paste download folder"/><Button icon={FolderOpen} onClick={browse}>Browse</Button></div></label><label>Converted files folder<div className="input-action"><input value={draft.conversionLocation || ''} onChange={event => set('conversionLocation', event.target.value)} placeholder="Choose or paste converted files folder"/><Button icon={FolderOpen} onClick={browseConversion}>Browse</Button></div></label><div className="field-grid"><label>{t('Parallel downloads')}<select value={draft.parallelDownloads} onChange={event => set('parallelDownloads', Number(event.target.value))}>{[1,2,3,4].map(value => <option key={value}>{value}</option>)}</select></label><label>{t('Fragments per download')}<select value={draft.concurrentFragments} onChange={event => set('concurrentFragments', Number(event.target.value))}>{[1,2,4,8,16].map(value => <option key={value}>{value}</option>)}</select></label></div><p className="hint">Download and converted files can use different folders. Choose both locations before saving settings.</p><label>{t('Filename template')}<input value={draft.filenameTemplate} onChange={event => set('filenameTemplate', event.target.value)}/></label><label className="check-label"><input type="checkbox" checked={draft.preventDuplicates} onChange={event => set('preventDuplicates', event.target.checked)}/> {t('Prevent duplicate downloads')}</label></Card>
     <Card><h2>{t('Site authentication')}</h2><p className="hint">Facebook, TikTok, Douyin, and authorized SharePoint links may need cookies from a browser where you are signed in. Close that browser first if its cookie database is locked. Owner-blocked downloads remain unavailable.</p><label>{t('Use browser cookies')}<select value={draft.browserCookies} onChange={event => set('browserCookies', event.target.value)}>{['None','Chrome','Edge','Firefox'].map(value => <option key={value}>{value}</option>)}</select></label><h2 className="section-gap">{t('Appearance')}</h2><div className="segmented">{['Light','Dark','Liquid Glass','System'].map(value => <button key={value} className={draft.theme === value ? 'selected' : ''} onClick={() => { set('theme', value); setTheme(value) }}>{value === 'Dark' ? <Moon/> : value === 'Liquid Glass' ? <Sparkles/> : <Sun/>}{t(value)}</button>)}</div></Card>
     <Card className="wide-card update-card"><div className="card-title"><div><span className="section-icon cyan"><RefreshCw className={updateStatus?.status === 'checking' ? 'spin' : ''}/></span><h2>Application updates</h2><p>Automatically checks verified releases from GitHub and restarts after installation.</p></div><span className={`connection-pill ${updateStatus?.status === 'current' ? 'online' : ''}`}>Version {updateStatus?.currentVersion || '—'}</span></div><div className="update-layout"><div><strong>{updateStatus?.available ? `Version ${updateStatus.latestVersion} available` : updateStatus?.status === 'current' ? 'You have the latest version' : 'Release update service'}</strong><p className={updateStatus?.status === 'error' ? 'connection-error' : 'hint'}>{updateStatus?.message}</p>{['downloading','installing'].includes(updateStatus?.status) && <div className="update-progress"><span style={{ width: `${updateStatus.progress || 0}%` }}/></div>}</div><div className="button-row"><Button icon={RefreshCw} onClick={checkUpdate} disabled={['checking','downloading','installing'].includes(updateStatus?.status)}>{updateStatus?.status === 'checking' ? 'Checking…' : 'Check for updates'}</Button>{updateStatus?.available && <Button icon={Download} variant="primary" onClick={installUpdate} disabled={['downloading','installing'].includes(updateStatus?.status)}>{updateStatus?.status === 'downloading' ? `Downloading ${Math.round(updateStatus.progress || 0)}%` : updateStatus?.status === 'installing' ? 'Restarting…' : `Install ${updateStatus.latestVersion}`}</Button>}</div></div></Card>
     <Card className="wide-card extension-card"><div className="card-title"><div><span className="section-icon cyan"><Cable/></span><h2>Browser extension</h2><p>Authenticated local connection for the YouTube, TikTok, Facebook, and web video button.</p></div><span className={`connection-pill ${extensionConnection?.connected ? 'online' : ''}`}><Wifi/>{extensionConnection?.connected ? 'Connected' : 'Not tested'}</span></div><div className="extension-grid"><label>Local endpoint<input value="http://127.0.0.1:38473" readOnly/></label><label>Connection token<div className="input-action"><input value={draft.apiToken} readOnly/><Button icon={Copy} onClick={() => navigator.clipboard.writeText(draft.apiToken)}>Copy</Button></div></label><div className="button-row"><Button icon={Wifi} variant="success" onClick={testExtension}>Test connection</Button><Button icon={UploadCloud} onClick={() => api.export_browser_extension()}>Export extension</Button></div></div>{extensionConnection?.error && <p className="connection-error">{extensionConnection.error}</p>}</Card>
