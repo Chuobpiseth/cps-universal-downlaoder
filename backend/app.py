@@ -28,7 +28,7 @@ from urllib.parse import parse_qs, quote, urlparse
 
 
 APP_NAME = "CPS Universal Downloader Premium"
-APP_VERSION = "1.2.5"
+APP_VERSION = "1.2.6"
 GITHUB_REPOSITORY = "Chuobpiseth/cps-universal-downlaoder"
 GITHUB_RELEASE_API = f"https://api.github.com/repos/{GITHUB_REPOSITORY}/releases/latest"
 CODECRAFT_API_BASE = "https://codecraftapi.com/v1"
@@ -118,6 +118,8 @@ def compact_format(entry: dict[str, Any]) -> dict[str, Any]:
 
 def classify_download_error(lines: list[str]) -> dict[str, str]:
     text = "\n".join(lines[-30:]).lower()
+    if any(marker in text for marker in ("sign in to confirm you", "too many requests", "http error 429", "gvs po token", "visitor data")) and ("[youtube]" in text or "youtube" in text):
+        return {"code": "youtube-bot-check", "message": "YouTube rate-limited this request (HTTP 429 / bot check).", "action": "Enable browser cookies in Settings → Site authentication (Chrome, Edge, Brave, etc.), or retry in a few moments."}
     if "[facebook" in text and any(marker in text for marker in ("cannot parse data", "no video formats", "login", "log in", "age-restricted")):
         return {"code": "facebook-auth", "message": "Facebook did not expose downloadable video formats for this session.", "action": "Sign into Facebook in Edge or Chrome, select that browser in Settings, fully close it, and retry."}
     if "video is unavailable" in text or "this video is unavailable" in text or "has been removed" in text:
@@ -518,14 +520,14 @@ class DesktopApi:
 
     def _base_args(self) -> list[str]:
         args: list[str] = [
-            "--extractor-args", "youtube:skip=hls",
-            "--socket-timeout", "10",
+            "--extractor-args", "youtube:player_client=default,web_creator,android,ios,mweb",
+            "--socket-timeout", "20",
         ]
         deno = tool_path("deno.exe")
         if deno.exists():
             args += ["--js-runtimes", f"deno:{deno}"]
         cookie_source = str(self.settings.get("browserCookies", "None")).lower()
-        if cookie_source in {"chrome", "edge", "firefox"}:
+        if cookie_source in {"chrome", "edge", "firefox", "brave", "opera", "vivaldi", "chromium"}:
             args += ["--cookies-from-browser", cookie_source]
         return args
 
@@ -557,6 +559,8 @@ class DesktopApi:
     def _friendly_analysis_error(self, url: str, detail: str) -> str:
         host = (urlparse(url).hostname or "").lower()
         lowered = detail.lower()
+        if ("youtube.com" in host or "youtu.be" in host) and any(marker in lowered for marker in ("sign in to confirm you", "too many requests", "429", "po token", "visitor data")):
+            return "YouTube rate-limited this request (HTTP 429 / bot check). In Settings, choose your browser (Chrome, Edge, Brave, etc.) under Site authentication, or retry in a few moments."
         if "kisskh" in host:
             return "KissKH is not directly supported by the current media engine. If the browser extension detects an unprotected video stream, send that stream to CPS; DRM-protected or encrypted episodes cannot be downloaded."
         if host.endswith("sharepoint.com") or host in {"1drv.ms", "onedrive.live.com"}:
@@ -595,15 +599,29 @@ class DesktopApi:
         # metadata pass, while ordinary video links resolve formats immediately.
         try:
             if looks_like_collection_url(url):
-                info = self._run_json(["--dump-single-json", "--flat-playlist", "--yes-playlist", "--ignore-errors", "--no-warnings", "--socket-timeout", "10", "--playlist-end", "200", url], timeout=75)
+                info = self._run_json(["--dump-single-json", "--flat-playlist", "--yes-playlist", "--ignore-errors", "--no-warnings", "--socket-timeout", "15", "--playlist-end", "200", url], timeout=75)
                 if not (info.get("entries") or []):
-                    info = self._run_json(["--dump-single-json", "--yes-playlist", "--no-warnings", "--socket-timeout", "10", url], timeout=90)
+                    info = self._run_json(["--dump-single-json", "--yes-playlist", "--no-warnings", "--socket-timeout", "15", url], timeout=90)
             else:
-                info = self._run_json(["--dump-single-json", "--no-playlist", "--no-warnings", "--socket-timeout", "10", url], timeout=90)
+                info = self._run_json(["--dump-single-json", "--no-playlist", "--no-warnings", "--socket-timeout", "15", url], timeout=90)
         except RuntimeError as exc:
-            message = self._friendly_analysis_error(url, str(exc))
-            self._log_activity("error", "analyze", message)
-            raise RuntimeError(message) from exc
+            exc_str = str(exc).lower()
+            if ("youtube.com" in url.lower() or "youtu.be" in url.lower()) and any(m in exc_str for m in ("sign in to confirm you", "too many requests", "429", "po token", "visitor data")):
+                try:
+                    self._log_activity("warning", "analyze", "YouTube rate-limited standard client. Retrying analysis with mobile fallback engine...")
+                    fallback_args = ["--extractor-args", "youtube:player_skip=webpage,configs;player_client=ios,android,mweb"]
+                    if looks_like_collection_url(url):
+                        info = self._run_json([*fallback_args, "--dump-single-json", "--flat-playlist", "--yes-playlist", "--ignore-errors", "--no-warnings", "--socket-timeout", "15", "--playlist-end", "200", url], timeout=75)
+                    else:
+                        info = self._run_json([*fallback_args, "--dump-single-json", "--no-playlist", "--no-warnings", "--socket-timeout", "15", url], timeout=90)
+                except Exception:
+                    message = self._friendly_analysis_error(url, str(exc))
+                    self._log_activity("error", "analyze", message)
+                    raise RuntimeError(message) from exc
+            else:
+                message = self._friendly_analysis_error(url, str(exc))
+                self._log_activity("error", "analyze", message)
+                raise RuntimeError(message) from exc
         entries = []
         for entry in info.get("entries") or []:
             if not entry:
@@ -868,106 +886,132 @@ class DesktopApi:
         path_record = path_record_dir / f"{item['id']}.txt"
         path_record.unlink(missing_ok=True)
         fragments = max(1, min(16, int(self.settings.get("concurrentFragments", 8))))
-        args = [
-            str(tool_path("yt-dlp.exe")), *self._base_args(), "--newline", "--no-color", "--progress", "--no-playlist", "--continue", "--part",
-            "--retries", "10", "--fragment-retries", "20", "--extractor-retries", "5", "--file-access-retries", "5",
-            "--retry-sleep", "fragment:exp=1:20", "--socket-timeout", "30", "--concurrent-fragments", str(fragments),
-            "--buffer-size", "64K", "--http-chunk-size", "10M", "--progress-delta", "0.2",
-            "--progress-template", "download:download:%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s",
-            "--progress-template", "postprocess:postprocess:%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s",
-            "--print", "before_dl:meta:title:%(title)s", "--print", "before_dl:meta:platform:%(extractor_key)s",
-            "--print", "after_video:filepath:%(filepath)s",
-            "--print-to-file", "after_video:%(filepath)s", str(path_record),
-            "--print-to-file", "after_move:%(filepath)s", str(path_record),
-            "--ffmpeg-location", str(tool_path("ffmpeg.exe").parent), "--windows-filenames", "--trim-filenames", "180", "-P", str(output_dir), "-o", self.settings.get("filenameTemplate") or "%(title)s [%(id)s].%(ext)s",
-        ]
-        if self.settings.get("preventDuplicates", True):
-            args += ["--download-archive", str(DATA_DIR / "download-archive.txt")]
-        if item.get("kind") == "Audio":
-            audio_format = "best" if item.get("format") == "Original" else str(item.get("format", "MP3")).lower()
-            args += ["-x", "--audio-format", audio_format, "--audio-quality", "0"]
-        else:
-            quality_str = str(item.get("quality", "Best"))
-            format_id = str(item.get("formatId") or "").strip()
-            if format_id:
-                args += ["-f", f"{format_id}/bv*+ba/b/best"]
-            else:
-                args += ["-f", format_selector(quality_str)]
-            limits = {"4K / 2160p": 2160, "2160p": 2160, "1440p": 1440, "1080p": 1080, "720p": 720, "480p": 480, "360p": 360}
-            target_res = limits.get(quality_str.strip()) if isinstance(quality_str, str) else None
-            if target_res:
-                args += ["--format-sort", f"res:{target_res},fps"]
-            video_format = str(item.get("format", "MP4"))
-            if video_format != "Auto":
-                args += ["--merge-output-format", video_format.lower()]
-        subtitle_language = str(item.get("subtitleLanguage") or "").strip()
-        if item.get("embedSubtitles") and subtitle_language:
-            args += ["--write-subs", "--write-auto-subs", "--sub-langs", subtitle_language, "--embed-subs"]
-        if item.get("sponsorBlock"):
-            args += ["--sponsorblock-remove", "sponsor,selfpromo,interaction,intro,outro,preview"]
-        if item.get("splitChapters"):
-            args += ["--split-chapters"]
-        start_time, end_time = str(item.get("startTime") or "").strip(), str(item.get("endTime") or "").strip()
-        if start_time or end_time:
-            args += ["--download-sections", f"*{start_time or '0'}-{end_time or 'inf'}", "--force-keyframes-at-cuts"]
-        args.append(item["url"])
         process: subprocess.Popen[str] | None = None
         diagnostic_lines: list[str] = []
         try:
-            self._set_item(item, status="Downloading", error="", recovery=None)
-            self._log_activity("info", "download", f"Downloading to {output_dir}", item)
-            process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace", bufsize=1, creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0, env=child_process_environment())
-            with self._lock:
-                self._processes[item["id"]] = process
-            assert process.stdout is not None
-            for raw in process.stdout:
-                line = raw.strip()
-                diagnostic_lines.append(line)
-                diagnostic_lines[:] = diagnostic_lines[-40:]
-                if line.startswith("meta:title:"):
-                    self._set_item(item, title=line[11:].strip())
-                elif line.startswith("meta:platform:"):
-                    self._set_item(item, platform=line[14:].strip())
-                elif line.startswith("filepath:"):
-                    self._set_item(item, outputPath=line[9:].strip(), status="Processing")
+            for attempt in (0, 1):
+                diagnostic_lines.clear()
+                base = list(self._base_args())
+                if attempt == 1 or item.get("_use_bot_fallback"):
+                    filtered_base = []
+                    skip_val = False
+                    for token in base:
+                        if skip_val:
+                            skip_val = False
+                            continue
+                        if token == "--extractor-args":
+                            skip_val = True
+                            continue
+                        filtered_base.append(token)
+                    base = [*filtered_base, "--extractor-args", "youtube:player_skip=webpage,configs;player_client=ios,android,mweb"]
+
+                args = [
+                    str(tool_path("yt-dlp.exe")), *base, "--newline", "--no-color", "--progress", "--no-playlist", "--continue", "--part",
+                    "--retries", "10", "--fragment-retries", "20", "--extractor-retries", "5", "--file-access-retries", "5",
+                    "--retry-sleep", "fragment:exp=1:20", "--socket-timeout", "30", "--concurrent-fragments", str(fragments),
+                    "--buffer-size", "64K", "--http-chunk-size", "10M", "--progress-delta", "0.2",
+                    "--progress-template", "download:download:%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s",
+                    "--progress-template", "postprocess:postprocess:%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s",
+                    "--print", "before_dl:meta:title:%(title)s", "--print", "before_dl:meta:platform:%(extractor_key)s",
+                    "--print", "after_video:filepath:%(filepath)s",
+                    "--print-to-file", "after_video:%(filepath)s", str(path_record),
+                    "--print-to-file", "after_move:%(filepath)s", str(path_record),
+                    "--ffmpeg-location", str(tool_path("ffmpeg.exe").parent), "--windows-filenames", "--trim-filenames", "180", "-P", str(output_dir), "-o", self.settings.get("filenameTemplate") or "%(title)s [%(id)s].%(ext)s",
+                ]
+                if self.settings.get("preventDuplicates", True):
+                    args += ["--download-archive", str(DATA_DIR / "download-archive.txt")]
+                if item.get("kind") == "Audio":
+                    audio_format = "best" if item.get("format") == "Original" else str(item.get("format", "MP3")).lower()
+                    args += ["-x", "--audio-format", audio_format, "--audio-quality", "0"]
                 else:
-                    update = parse_progress(line)
-                    if update:
-                        self._set_item(item, **{key: value for key, value in update.items() if value is not None})
-                if self._stop.is_set() and process.poll() is None:
-                    process.terminate()
-            code = process.wait()
-            if self._stop.is_set():
-                self._set_item(item, status="Cancelled")
-                self._log_activity("warning", "download", "Download cancelled by the user.", item)
-            elif code:
-                recovery = classify_download_error(diagnostic_lines)
-                self._set_item(item, recovery=recovery)
-                raise RuntimeError(recovery["message"])
-            else:
-                recorded_path = ""
-                if path_record.exists():
-                    try:
-                        recorded_path = path_record.read_text(encoding="utf-8-sig", errors="replace").splitlines()[-1].strip()
-                    except (OSError, IndexError):
-                        recorded_path = ""
-                final_path = self._actual_output_path(recorded_path or str(item.get("outputPath") or ""))
-                if not final_path or not Path(final_path).is_file():
-                    final_path = self._find_recent_download(output_dir, item)
-                if final_path and (item.get("smartVertical") or item.get("removeSilence") or item.get("hookCaption")):
-                    self._set_item(item, status="Processing", stage="Creating short-form clip")
-                    try:
-                        final_path = self._process_creator_clip(final_path, item)
-                    except Exception as exc:
-                        self._log_activity("warning", "clip", f"The source clip downloaded, but creator processing was skipped: {exc}", item)
-                completed_at = datetime.now().isoformat(timespec="seconds")
-                self._set_item(item, status="Completed", progress=100, speed="—", eta="00:00", outputPath=final_path, completedAt=completed_at)
+                    quality_str = str(item.get("quality", "Best"))
+                    format_id = str(item.get("formatId") or "").strip()
+                    if format_id:
+                        args += ["-f", f"{format_id}/bv*+ba/b/best"]
+                    else:
+                        args += ["-f", format_selector(quality_str)]
+                    limits = {"4K / 2160p": 2160, "2160p": 2160, "1440p": 1440, "1080p": 1080, "720p": 720, "480p": 480, "360p": 360}
+                    target_res = limits.get(quality_str.strip()) if isinstance(quality_str, str) else None
+                    if target_res:
+                        args += ["--format-sort", f"res:{target_res},fps"]
+                    video_format = str(item.get("format", "MP4"))
+                    if video_format != "Auto":
+                        args += ["--merge-output-format", video_format.lower()]
+                subtitle_language = str(item.get("subtitleLanguage") or "").strip()
+                if item.get("embedSubtitles") and subtitle_language:
+                    args += ["--write-subs", "--write-auto-subs", "--sub-langs", subtitle_language, "--embed-subs"]
+                if item.get("sponsorBlock"):
+                    args += ["--sponsorblock-remove", "sponsor,selfpromo,interaction,intro,outro,preview"]
+                if item.get("splitChapters"):
+                    args += ["--split-chapters"]
+                start_time, end_time = str(item.get("startTime") or "").strip(), str(item.get("endTime") or "").strip()
+                if start_time or end_time:
+                    args += ["--download-sections", f"*{start_time or '0'}-{end_time or 'inf'}", "--force-keyframes-at-cuts"]
+                args.append(item["url"])
+
+                self._set_item(item, status="Downloading", error="", recovery=None)
+                self._log_activity("info", "download", f"Downloading to {output_dir}", item)
+                process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace", bufsize=1, creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0, env=child_process_environment())
                 with self._lock:
-                    self.history[:] = [entry for entry in self.history if entry.get("id") != item.get("id")]
-                    self.history.insert(0, dict(item))
-                    self.history[:] = self.history[:500]
-                    self._save_history()
-                self._log_activity("success", "download", f"Completed: {final_path or item.get('title')}", item)
+                    self._processes[item["id"]] = process
+                assert process.stdout is not None
+                for raw in process.stdout:
+                    line = raw.strip()
+                    diagnostic_lines.append(line)
+                    diagnostic_lines[:] = diagnostic_lines[-40:]
+                    if line.startswith("meta:title:"):
+                        self._set_item(item, title=line[11:].strip())
+                    elif line.startswith("meta:platform:"):
+                        self._set_item(item, platform=line[14:].strip())
+                    elif line.startswith("filepath:"):
+                        self._set_item(item, outputPath=line[9:].strip(), status="Processing")
+                    else:
+                        update = parse_progress(line)
+                        if update:
+                            self._set_item(item, **{key: value for key, value in update.items() if value is not None})
+                    if self._stop.is_set() and process.poll() is None:
+                        process.terminate()
+                code = process.wait()
+                if self._stop.is_set():
+                    self._set_item(item, status="Cancelled")
+                    self._log_activity("warning", "download", "Download cancelled by the user.", item)
+                    break
+                elif code:
+                    text_error = "\n".join(diagnostic_lines).lower()
+                    is_youtube = "youtube" in str(item.get("url", "")).lower() or "[youtube]" in text_error
+                    is_bot_check = any(m in text_error for m in ("sign in to confirm you", "too many requests", "429", "po token", "visitor data"))
+                    if attempt == 0 and is_youtube and is_bot_check and not self._stop.is_set():
+                        self._log_activity("warning", "download", "YouTube rate-limited standard client. Retrying with mobile fallback engine...", item)
+                        time.sleep(1)
+                        continue
+                    recovery = classify_download_error(diagnostic_lines)
+                    self._set_item(item, recovery=recovery)
+                    raise RuntimeError(recovery["message"])
+                else:
+                    recorded_path = ""
+                    if path_record.exists():
+                        try:
+                            recorded_path = path_record.read_text(encoding="utf-8-sig", errors="replace").splitlines()[-1].strip()
+                        except (OSError, IndexError):
+                            recorded_path = ""
+                    final_path = self._actual_output_path(recorded_path or str(item.get("outputPath") or ""))
+                    if not final_path or not Path(final_path).is_file():
+                        final_path = self._find_recent_download(output_dir, item)
+                    if final_path and (item.get("smartVertical") or item.get("removeSilence") or item.get("hookCaption")):
+                        self._set_item(item, status="Processing", stage="Creating short-form clip")
+                        try:
+                            final_path = self._process_creator_clip(final_path, item)
+                        except Exception as exc:
+                            self._log_activity("warning", "clip", f"The source clip downloaded, but creator processing was skipped: {exc}", item)
+                    completed_at = datetime.now().isoformat(timespec="seconds")
+                    self._set_item(item, status="Completed", progress=100, speed="—", eta="00:00", outputPath=final_path, completedAt=completed_at)
+                    with self._lock:
+                        self.history[:] = [entry for entry in self.history if entry.get("id") != item.get("id")]
+                        self.history.insert(0, dict(item))
+                        self.history[:] = self.history[:500]
+                        self._save_history()
+                    self._log_activity("success", "download", f"Completed: {final_path or item.get('title')}", item)
+                    break
         except Exception as exc:
             self._set_item(item, status="Cancelled" if self._stop.is_set() else "Failed", error=str(exc))
             if not self._stop.is_set():

@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 $project = $PSScriptRoot
 $source = Join-Path $project 'installer\CPSUniversalDownloader.iss'
-$onedirApp = Join-Path $project 'build-v1.2.5\onedir\CPSUniversalDownloader\CPSUniversalDownloader.exe'
+$onedirApp = Join-Path $project 'build-v1.2.6\onedir\CPSUniversalDownloader\CPSUniversalDownloader.exe'
 $compilerCandidates = @(
     (Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'),
     (Join-Path $env:ProgramFiles 'Inno Setup 6\ISCC.exe'),
@@ -19,6 +19,6 @@ if (-not $compiler) {
 & $compiler $source
 if ($LASTEXITCODE -ne 0) { throw 'Installer build failed.' }
 
-$installer = Join-Path $project 'release\CPS-Universal-Downloader-v1.2.5-Setup.exe'
+$installer = Join-Path $project 'release\CPS-Universal-Downloader-v1.2.6-Setup.exe'
 if (-not (Test-Path -LiteralPath $installer)) { throw "Installer output is missing: $installer" }
 Write-Host "Per-user installer: $installer"

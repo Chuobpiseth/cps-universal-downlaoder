@@ -54,6 +54,15 @@ class CoreTests(unittest.TestCase):
         self.assertEqual("authentication", recovery["code"])
         self.assertIn("browser", recovery["action"])
 
+    def test_recovery_classifies_youtube_bot_check(self):
+        recovery = backend.classify_download_error([
+            "WARNING: [youtube] 9Oo5AFzVLgE: Unable to download webpage: HTTP Error 429: Too Many Requests",
+            "ERROR: [youtube] 9Oo5AFzVLgE: Sign in to confirm you’re not a bot. Use --cookies-from-browser"
+        ])
+        self.assertEqual("youtube-bot-check", recovery["code"])
+        self.assertIn("429", recovery["message"])
+        self.assertIn("cookies", recovery["action"].lower())
+
     def test_recovery_classifies_unavailable_video(self):
         recovery = backend.classify_download_error(["ERROR: This video is unavailable"])
         self.assertEqual("unavailable", recovery["code"])

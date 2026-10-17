@@ -1,4 +1,4 @@
-# CPS Universal Downloader 1.2.5
+# CPS Universal Downloader 1.2.6
 
 A polished Windows video workspace for downloading authorized media, converting files, creating subtitles, and understanding videos with multi-provider AI.
 
@@ -12,10 +12,10 @@ A polished Windows video workspace for downloading authorized media, converting 
 
 Run `build-portable.ps1`. It compiles the UI, runs tests, and creates:
 
-- `build-v1.2.5\CPSUniversalDownloader.exe`
-- `release\CPS-Universal-Downloader-v1.2.5-Portable.exe`
-- `release\CPS-Universal-Downloader-v1.2.5-Windows-x64-Single-EXE.zip`
-- `release\CPS-Universal-Downloader-v1.2.5-Setup.exe`
+- `build-v1.2.6\CPSUniversalDownloader.exe`
+- `release\CPS-Universal-Downloader-v1.2.6-Portable.exe`
+- `release\CPS-Universal-Downloader-v1.2.6-Windows-x64-Single-EXE.zip`
+- `release\CPS-Universal-Downloader-v1.2.6-Setup.exe`
 
 Customers can open the standalone EXE directly or use the per-user installer. Neither format requires Python or Node. Both store personal state in `%LOCALAPPDATA%\CPS Universal Downloader`.
 
@@ -41,7 +41,7 @@ Download and conversion destinations are configured independently in Settings. T
 
 History stores the exact final output path and automatically repairs older entries whose Unicode filenames were decoded incorrectly. The History page also contains a persistent activity log for analysis, queue, download, completion, cancellation, and error events.
 
-Version 1.2.5 adds Groq Cloud, OpenRouter, and Inception Labs AI providers with vision prompt analysis, liquid glass theme enhancements, format inspector visualizer, and intelligent quality fallback for Facebook/TikTok.
+Version 1.2.6 fixes YouTube HTTP 429 rate-limiting, GVS PO token issues, and "Sign in to confirm you're not a bot" errors with automatic multi-client fallback (`player_client=default,web_creator,android,ios,mweb`), intelligent in-process retry, and expanded browser cookie authentication for Brave, Opera, Vivaldi, and Chromium.
 
 The installer uses `%LOCALAPPDATA%\Programs\CPS Universal Downloader`, needs no administrator rights, and creates Start Menu and optional desktop shortcuts. Uninstalling the program leaves personal settings and history intact.
 

@@ -1,7 +1,7 @@
 VSVersionInfo(
   ffi=FixedFileInfo(
-    filevers=(1, 2, 5, 0),
-    prodvers=(1, 2, 5, 0),
+    filevers=(1, 2, 6, 0),
+    prodvers=(1, 2, 6, 0),
     mask=0x3f,
     flags=0x0,
     OS=0x40004,
@@ -16,12 +16,12 @@ VSVersionInfo(
         [
           StringStruct('CompanyName', 'Chuob Piseth'),
           StringStruct('FileDescription', 'CPS Universal Downloader Premium'),
-          StringStruct('FileVersion', '1.2.5.0'),
+          StringStruct('FileVersion', '1.2.6.0'),
           StringStruct('InternalName', 'CPSUniversalDownloader'),
           StringStruct('LegalCopyright', 'Copyright 2026 Chuob Piseth'),
           StringStruct('OriginalFilename', 'CPSUniversalDownloader.exe'),
           StringStruct('ProductName', 'CPS Universal Downloader Premium'),
-          StringStruct('ProductVersion', '1.2.5')
+          StringStruct('ProductVersion', '1.2.6')
         ]
       )
     ]),
