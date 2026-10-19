@@ -51,6 +51,7 @@ $onedirDist = Join-Path $dist 'onedir'
     --workpath (Join-Path $project 'build-temp') `
     --specpath (Join-Path $project 'build-temp') `
     --collect-all webview `
+    --collect-all certifi `
     --add-data "$frontendDist;frontend" `
     --add-data "$stagingTools;tools" `
     --add-data "$(Join-Path $project 'browser-extension');browser-extension" `
@@ -66,6 +67,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Onedir application build failed.' }
     --workpath (Join-Path $project 'build-temp') `
     --specpath (Join-Path $project 'build-temp') `
     --collect-all webview `
+    --collect-all certifi `
     --add-data "$frontendDist;frontend" `
     --add-data "$stagingTools;tools" `
     --add-data "$(Join-Path $project 'browser-extension');browser-extension" `

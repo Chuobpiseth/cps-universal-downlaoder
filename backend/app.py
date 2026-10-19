@@ -12,6 +12,7 @@ import secrets
 import shutil
 import subprocess
 import sys
+import ssl
 import tempfile
 import threading
 import time
@@ -54,6 +55,38 @@ def resolve_data_dir(*, frozen: bool, app_root: Path = APP_ROOT, source_root: Pa
 
 DATA_DIR = resolve_data_dir(frozen=bool(getattr(sys, "frozen", False)))
 DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+try:
+    import certifi
+    if "SSL_CERT_FILE" not in os.environ:
+        os.environ["SSL_CERT_FILE"] = certifi.where()
+except Exception:
+    pass
+
+
+def resilient_ssl_context() -> ssl.SSLContext:
+    """Create an SSL context backed by certifi Mozilla CA bundle and Windows root/enterprise certs."""
+    try:
+        import certifi
+        context = ssl.create_default_context(cafile=certifi.where())
+    except Exception:
+        context = ssl.create_default_context()
+    try:
+        context.load_default_certs()
+    except Exception:
+        pass
+    if hasattr(ssl, "enum_certificates"):
+        for store in ("ROOT", "CA"):
+            try:
+                for cert, encoding, trust in ssl.enum_certificates(store):
+                    if encoding == "x509_asn":
+                        try:
+                            context.load_verify_locations(cadata=ssl.DER_cert_to_PEM_cert(cert))
+                        except Exception:
+                            pass
+            except Exception:
+                pass
+    return context
 
 
 def migrate_legacy_data() -> None:
@@ -1501,10 +1534,18 @@ class DesktopApi:
         status = self.get_system_status()
         request = urllib.request.Request("https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest", headers={"Accept": "application/vnd.github+json", "User-Agent": "CPSUniversalDownloader/1.1"})
         try:
-            with urllib.request.urlopen(request, timeout=20) as response:
-                latest = json.loads(response.read()).get("tag_name", "")
+            with urllib.request.urlopen(request, context=resilient_ssl_context(), timeout=20) as response:
+                latest = json.loads(response.read().decode("utf-8", errors="replace")).get("tag_name", "")
         except Exception as exc:
-            raise RuntimeError(f"Could not check for engine updates: {exc}") from exc
+            curl = shutil.which("curl.exe") or ("C:\\Windows\\System32\\curl.exe" if Path("C:\\Windows\\System32\\curl.exe").exists() else None)
+            if curl:
+                proc = subprocess.run([str(curl), "-sL", "--max-time", "20", "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest"], capture_output=True, text=True, encoding="utf-8", errors="replace", creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
+                if proc.returncode == 0 and proc.stdout.strip():
+                    latest = json.loads(proc.stdout).get("tag_name", "")
+                else:
+                    raise RuntimeError(f"Could not check for engine updates: {exc}") from exc
+            else:
+                raise RuntimeError(f"Could not check for engine updates: {exc}") from exc
         current = status["mediaSupport"].get("yt-dlp", "")
         return {"version": APP_VERSION, "currentSupport": current, "latestSupport": latest, "updateAvailable": bool(latest and latest not in current), "message": "A newer media-support update is available." if latest and latest not in current else "Media support is current."}
 
@@ -1530,8 +1571,27 @@ class DesktopApi:
             headers={"Accept": "application/vnd.github+json", "User-Agent": f"CPSUniversalDownloader/{APP_VERSION}"},
         )
         try:
-            with urllib.request.urlopen(request, timeout=25) as response:
-                release = json.loads(response.read())
+            try:
+                with urllib.request.urlopen(request, context=resilient_ssl_context(), timeout=25) as response:
+                    release = json.loads(response.read().decode("utf-8", errors="replace"))
+            except Exception as net_exc:
+                is_ssl = "certificate verify failed" in str(net_exc).lower() or isinstance(net_exc, ssl.SSLError) or (isinstance(net_exc, urllib.error.URLError) and "ssl" in str(net_exc).lower())
+                curl = shutil.which("curl.exe") or ("C:\\Windows\\System32\\curl.exe" if Path("C:\\Windows\\System32\\curl.exe").exists() else None)
+                if is_ssl and curl:
+                    proc = subprocess.run(
+                        [str(curl), "-sL", "--max-time", "25", "-H", "Accept: application/vnd.github+json", "-H", f"User-Agent: CPSUniversalDownloader/{APP_VERSION}", GITHUB_RELEASE_API],
+                        capture_output=True,
+                        text=True,
+                        encoding="utf-8",
+                        errors="replace",
+                        creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+                    )
+                    if proc.returncode == 0 and proc.stdout.strip():
+                        release = json.loads(proc.stdout)
+                    else:
+                        raise net_exc
+                else:
+                    raise net_exc
             latest = str(release.get("tag_name") or "").lstrip("vV")
             assets = release.get("assets") or []
             installer = next((item for item in assets if str(item.get("name", "")).lower().endswith("-setup.exe")), None)
@@ -1597,17 +1657,34 @@ class DesktopApi:
         if parsed.scheme != "https" or parsed.hostname not in {"github.com", "api.github.com"}:
             raise RuntimeError("The update asset did not come from GitHub.")
         request = urllib.request.Request(url, headers={"Accept": "application/octet-stream", "User-Agent": f"CPSUniversalDownloader/{APP_VERSION}"})
-        with urllib.request.urlopen(request, timeout=60) as response, destination.open("wb") as output:
-            total = int(response.headers.get("Content-Length") or 0)
-            received = 0
-            while True:
-                block = response.read(1024 * 1024)
-                if not block:
-                    break
-                output.write(block)
-                received += len(block)
-                if progress:
-                    progress(received, total)
+        try:
+            with urllib.request.urlopen(request, context=resilient_ssl_context(), timeout=60) as response, destination.open("wb") as output:
+                total = int(response.headers.get("Content-Length") or 0)
+                received = 0
+                while True:
+                    block = response.read(1024 * 1024)
+                    if not block:
+                        break
+                    output.write(block)
+                    received += len(block)
+                    if progress:
+                        progress(received, total)
+        except Exception as net_exc:
+            is_ssl = "certificate verify failed" in str(net_exc).lower() or isinstance(net_exc, ssl.SSLError) or (isinstance(net_exc, urllib.error.URLError) and "ssl" in str(net_exc).lower())
+            curl = shutil.which("curl.exe") or ("C:\\Windows\\System32\\curl.exe" if Path("C:\\Windows\\System32\\curl.exe").exists() else None)
+            if is_ssl and curl:
+                destination.unlink(missing_ok=True)
+                proc = subprocess.run(
+                    [str(curl), "-L", "--fail", "--max-time", "300", "-o", str(destination), url],
+                    capture_output=True,
+                    text=True,
+                    creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+                )
+                if proc.returncode == 0 and destination.exists() and destination.stat().st_size > 0:
+                    if progress:
+                        progress(destination.stat().st_size, destination.stat().st_size)
+                    return
+            raise net_exc
 
     def _download_and_install_update(self, state: dict[str, Any]) -> None:
         update_dir = DATA_DIR / "updates"

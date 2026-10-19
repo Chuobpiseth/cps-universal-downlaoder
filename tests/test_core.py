@@ -481,6 +481,11 @@ class CoreTests(unittest.TestCase):
                         duration = api._conversion_duration("dummy.mp4")
                         self.assertEqual(90.5, duration)
 
+    def test_resilient_ssl_context_creates_valid_context(self):
+        ctx = backend.resilient_ssl_context()
+        self.assertIsNotNone(ctx)
+        self.assertIsInstance(ctx, backend.ssl.SSLContext)
+
 
 if __name__ == "__main__":
     unittest.main()
