@@ -29,7 +29,7 @@ from urllib.parse import parse_qs, quote, urlparse
 
 
 APP_NAME = "CPS Universal Downloader Premium"
-APP_VERSION = "1.2.6"
+APP_VERSION = "1.2.7"
 GITHUB_REPOSITORY = "Chuobpiseth/cps-universal-downlaoder"
 GITHUB_RELEASE_API = f"https://api.github.com/repos/{GITHUB_REPOSITORY}/releases/latest"
 CODECRAFT_API_BASE = "https://codecraftapi.com/v1"
@@ -213,8 +213,17 @@ def looks_like_collection_url(value: str) -> bool:
     if host.endswith(("youtube.com", "youtu.be")):
         return any(marker in path for marker in ("/playlist", "/channel/", "/c/", "/user/", "/@", "/videos")) and "/watch" not in path
     if host.endswith(("tiktok.com", "douyin.com")):
-        return any(marker in path for marker in ("/@", "/user/", "/tag/", "/music/", "/sound/", "/collection/")) and "/video/" not in path
+        return any(marker in path for marker in ("/@", "/user/", "/tag/", "/music/", "/sound/", "/collection/", "/channel/", "/search/", "/discover/")) and "/video/" not in path
     return any(marker in path for marker in ("/playlist/", "/channel/", "/series/", "/collection/"))
+
+
+def collection_cache_key(value: str) -> str:
+    parsed = urlparse(value)
+    path = parsed.path.rstrip("/") or "/"
+    # Profile URLs commonly carry tracking parameters which must not prevent a
+    # match. Search/category queries, however, identify the actual collection.
+    query = parsed.query if "/search" in path.lower() else ""
+    return f"{parsed.scheme.lower()}://{(parsed.hostname or '').lower()}{path}{f'?{query}' if query else ''}"
 
 
 def format_selector(quality: str) -> str:
@@ -337,15 +346,20 @@ class LocalExtensionServer:
                         self._reply(401, {"error": "Unauthorized"})
                         return
                     path = self.path.split("?", 1)[0]
-                    if path not in {"/add", "/analyze", "/download"}:
+                    if path not in {"/add", "/analyze", "/download", "/discover"}:
                         self._reply(404, {"error": "Not found"})
                         return
                     try:
                         length = int(self.headers.get("Content-Length", "0"))
-                        if length < 1 or length > 16384:
+                        maximum = 524288 if path == "/discover" else 16384
+                        if length < 1 or length > maximum:
                             raise ValueError("Invalid payload size")
                         payload = json.loads(self.rfile.read(length))
                         url = validate_url(str(payload.get("url", "")))
+                        if path == "/discover":
+                            count = owner.api.cache_browser_collection(url, str(payload.get("title") or "Douyin profile"), payload.get("entries"))
+                            self._reply(202, {"accepted": True, "count": count})
+                            return
                         kind = "Audio" if str(payload.get("mode", "video")).lower() == "audio" else "Video"
                         quality = str(payload.get("quality") or "Best")
                         added = owner.api.add_urls([{"url": url}], {"kind": kind, "quality": quality, "format": "MP3" if kind == "Audio" else "MP4"})
@@ -414,6 +428,7 @@ class DesktopApi:
         self.recipes: list[dict[str, Any]] = self._load_json(self._recipes_file, [])
         self.conversions: list[dict[str, Any]] = []
         self._analysis_cache: dict[str, tuple[float, dict[str, Any]]] = {}
+        self._browser_collections: dict[str, tuple[float, dict[str, Any]]] = {}
         for item in self.queue:
             if item.get("status") in {"Downloading", "Processing", "Analyzing"}:
                 item["status"] = "Waiting"
@@ -596,6 +611,8 @@ class DesktopApi:
             return "YouTube rate-limited this request (HTTP 429 / bot check). In Settings, choose your browser (Chrome, Edge, Brave, etc.) under Site authentication, or retry in a few moments."
         if "kisskh" in host:
             return "KissKH is not directly supported by the current media engine. If the browser extension detects an unprotected video stream, send that stream to CPS; DRM-protected or encrypted episodes cannot be downloaded."
+        if host.endswith("douyin.com") and looks_like_collection_url(url):
+            return "To list a Douyin profile or category, open that page in the browser with the CPS extension enabled, scroll until the videos you want are visible, then paste the same page link here and analyze it. Douyin does not expose profile lists to the desktop engine directly; CPS only captures public video links rendered in your browser."
         if host.endswith("sharepoint.com") or host in {"1drv.ms", "onedrive.live.com"}:
             if any(marker in lowered for marker in ("block download", "access denied", "forbidden", "403", "not authorized", "permission")):
                 return "Microsoft allows this file to be viewed but did not authorize downloading. Ask the owner to enable download permission; CPS does not bypass SharePoint or OneDrive restrictions."
@@ -615,6 +632,13 @@ class DesktopApi:
         url = validate_url(url)
         cache_key = url.strip()
         now = time.time()
+        parsed_url = urlparse(url)
+        if (parsed_url.hostname or "").lower().endswith("douyin.com") and looks_like_collection_url(url):
+            with self._lock:
+                browser_collection = getattr(self, "_browser_collections", {}).get(collection_cache_key(url))
+            if browser_collection and now - browser_collection[0] < 1800:
+                self._log_activity("info", "analyze", f"Loaded {len(browser_collection[1].get('entries') or [])} Douyin videos captured by the browser extension.")
+                return dict(browser_collection[1])
         cache = getattr(self, "_analysis_cache", None)
         lock = getattr(self, "_lock", None)
         if cache is not None:
@@ -662,8 +686,13 @@ class DesktopApi:
             item_url = entry.get("webpage_url") or entry.get("url") or ""
             extractor = str(entry.get("extractor_key") or info.get("extractor_key") or "Video")
             is_youtube = extractor.lower().startswith("youtube")
+            is_douyin = "douyin" in extractor.lower() or (urlparse(url).hostname or "").lower().endswith("douyin.com")
             if item_url and not item_url.startswith("http") and is_youtube:
                 item_url = f"https://www.youtube.com/watch?v={entry.get('id', item_url)}"
+            if is_douyin and entry.get("id"):
+                item_host = (urlparse(str(item_url)).hostname or "").lower()
+                if not item_url.startswith("http") or not item_host.endswith("douyin.com"):
+                    item_url = f"https://www.douyin.com/video/{entry['id']}"
             thumbnails = entry.get("thumbnails") or []
             thumbnail = entry.get("thumbnail") or next((item.get("url") for item in reversed(thumbnails) if item and item.get("url")), "")
             # YouTube's flat playlist response often omits thumbnail objects.
@@ -704,6 +733,53 @@ class DesktopApi:
             else:
                 cache[cache_key] = (time.time(), dict(result))
         return result
+
+    def cache_browser_collection(self, url: str, title: str, entries: Any) -> int:
+        parsed = urlparse(validate_url(url))
+        if not (parsed.hostname or "").lower().endswith("douyin.com") or not looks_like_collection_url(url):
+            raise ValueError("Only Douyin profile and category collections can be captured here.")
+        if not isinstance(entries, list):
+            raise ValueError("Invalid collection entries.")
+        clean_entries: list[dict[str, Any]] = []
+        seen: set[str] = set()
+        for entry in entries[:500]:
+            if not isinstance(entry, dict):
+                continue
+            item_url = str(entry.get("url") or "").strip()
+            match = re.match(r"^https?://(?:www\.)?douyin\.com/video/(\d+)", item_url, re.IGNORECASE)
+            if not match:
+                continue
+            stable_url = f"https://www.douyin.com/video/{match.group(1)}"
+            if stable_url in seen:
+                continue
+            seen.add(stable_url)
+            thumbnail = str(entry.get("thumbnail") or "")
+            clean_entries.append({
+                "url": stable_url,
+                "title": str(entry.get("title") or f"Douyin video {match.group(1)}")[:300],
+                "thumbnail": thumbnail[:4096] if thumbnail.startswith(("http://", "https://")) else "",
+                "duration": None,
+                "platform": "Douyin",
+            })
+        if not clean_entries:
+            raise ValueError("No public Douyin video links were visible on this page yet.")
+        result = {
+            "url": url,
+            "title": title[:300] or "Douyin profile",
+            "creator": "",
+            "platform": "Douyin",
+            "thumbnail": clean_entries[0]["thumbnail"],
+            "duration": None,
+            "views": None,
+            "description": "Videos captured from the signed-in browser page. Review and select the items you want; analysis does not start downloading.",
+            "entries": clean_entries,
+            "formats": [],
+            "subtitles": [],
+            "chapters": [],
+        }
+        with self._lock:
+            self._browser_collections[collection_cache_key(url)] = (time.time(), result)
+        return len(clean_entries)
 
     def add_urls(self, items: list[dict[str, Any]], options: dict[str, Any]) -> dict[str, Any]:
         added: list[str] = []

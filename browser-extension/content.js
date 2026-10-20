@@ -1,20 +1,48 @@
 (() => {
-  let activeVideo;
-  let scanTimer;
+  let activeVideo = null;
+  let control = null;
+  let scanTimer = 0;
+  let discoveredCount = 0;
+  const discoveredDouyin = new Map();
+  const PAGE_URL_HOSTS = /(^|\.)(tiktok\.com|douyin\.com|facebook\.com|youtube\.com|youtu\.be|instagram\.com|x\.com|twitter\.com|sharepoint\.com|onedrive\.live\.com)$/i;
 
-  const closeMenu = () => document.querySelectorAll('.cps-choice-menu.cps-open').forEach(menu => menu.classList.remove('cps-open'));
+  const closeMenu = () => control?.querySelector('.cps-choice-menu')?.classList.remove('cps-open');
 
   function discoveredHlsStream() {
     try {
-      return performance.getEntriesByType('resource')
-        .map(entry => entry.name)
-        .filter(url => /^https?:\/\//i.test(url) && /\.m3u8(?:$|[?#])/i.test(url))
-        .at(-1) || '';
+      return performance.getEntriesByType('resource').map(entry => entry.name)
+        .filter(url => /^https?:\/\//i.test(url) && /\.m3u8(?:$|[?#])/i.test(url)).at(-1) || '';
     } catch { return ''; }
   }
 
+  function stableSocialPage(video) {
+    const patterns = {
+      'tiktok.com': /\/video\/\d+/i,
+      'douyin.com': /\/video\/\d+/i,
+      'facebook.com': /\/(?:reel|watch|videos)\//i,
+      'instagram.com': /\/(?:reel|p)\//i,
+      'x.com': /\/status\/\d+/i,
+      'twitter.com': /\/status\/\d+/i,
+    };
+    const hostKey = Object.keys(patterns).find(host => location.hostname === host || location.hostname.endsWith(`.${host}`));
+    if (!hostKey) return location.href;
+    if (patterns[hostKey].test(location.pathname)) return location.href;
+    let scope = video;
+    for (let depth = 0; scope && depth < 7; depth += 1, scope = scope.parentElement) {
+      for (const anchor of scope.querySelectorAll?.('a[href]') || []) {
+        try {
+          const candidate = new URL(anchor.href, location.href);
+          if ((candidate.hostname === hostKey || candidate.hostname.endsWith(`.${hostKey}`)) && patterns[hostKey].test(candidate.pathname)) return candidate.href;
+        } catch { /* Ignore malformed site links. */ }
+      }
+    }
+    return location.href;
+  }
+
   function mediaAddress(video) {
-    if (/(^|\.)(sharepoint\.com|onedrive\.live\.com)$/i.test(location.hostname) || location.hostname === '1drv.ms') return location.href;
+    // Social CDN URLs expire and often require request headers. A stable page
+    // URL lets the desktop engine resolve a fresh, authenticated stream.
+    if (PAGE_URL_HOSTS.test(location.hostname) || location.hostname === '1drv.ms') return stableSocialPage(video);
     const direct = video.currentSrc || video.src || video.querySelector('source[src]')?.src || '';
     if (/^https?:\/\//i.test(direct)) return direct;
     return discoveredHlsStream() || location.href;
@@ -39,24 +67,37 @@
     return roots;
   }
 
+  function visibleArea(video) {
+    const rect = video.getBoundingClientRect();
+    const width = Math.max(0, Math.min(rect.right, innerWidth) - Math.max(rect.left, 0));
+    const height = Math.max(0, Math.min(rect.bottom, innerHeight) - Math.max(rect.top, 0));
+    const centerPenalty = Math.abs((rect.top + rect.bottom) / 2 - innerHeight / 2);
+    return (width * height) - centerPenalty * 100;
+  }
+
   function bestVideo() {
-    return openRoots().flatMap(root => [...root.querySelectorAll('video')])
-      .filter(video => {
-        const rect = video.getBoundingClientRect();
-        const style = getComputedStyle(video);
-        return rect.width >= 220 && rect.height >= 120 && rect.bottom > 0 && rect.top < innerHeight && style.display !== 'none' && style.visibility !== 'hidden';
-      })
-      .sort((a, b) => {
-        const ar = a.getBoundingClientRect(), br = b.getBoundingClientRect();
-        return (br.width * br.height) - (ar.width * ar.height);
-      })[0];
+    return openRoots().flatMap(root => [...root.querySelectorAll('video')]).filter(video => {
+      const rect = video.getBoundingClientRect();
+      const style = getComputedStyle(video);
+      return rect.width >= 220 && rect.height >= 120 && rect.bottom > 0 && rect.top < innerHeight
+        && style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity || 1) > 0;
+    }).sort((a, b) => visibleArea(b) - visibleArea(a))[0];
+  }
+
+  const overlayRoot = () => document.fullscreenElement || document.documentElement;
+
+  function positionControl() {
+    if (!control || !activeVideo?.isConnected) return;
+    const rect = activeVideo.getBoundingClientRect();
+    const visible = rect.width >= 220 && rect.height >= 120 && rect.bottom > 0 && rect.top < innerHeight;
+    control.style.setProperty('display', visible ? 'block' : 'none', 'important');
+    if (!visible) return;
+    control.style.setProperty('right', `${Math.max(8, innerWidth - Math.min(rect.right, innerWidth) + 12)}px`, 'important');
+    control.style.setProperty('top', `${Math.max(8, Math.min(innerHeight - 52, rect.top + 12))}px`, 'important');
   }
 
   function createControl(video) {
-    const host = video.closest('#movie_player, .html5-video-player, [data-e2e="video-player"], [data-testid*="video"], [class*="player"], article') || video.parentElement;
-    if (!host) return;
-    host.querySelector(':scope > .cps-video-download')?.remove();
-    if (getComputedStyle(host).position === 'static') host.style.setProperty('position', 'relative', 'important');
+    control?.remove();
     const wrap = document.createElement('div');
     wrap.className = 'cps-video-download';
     const button = document.createElement('button');
@@ -79,21 +120,49 @@
       if (choice.dataset.quality) send('video', choice.dataset.quality, video, button, menu);
     });
     wrap.append(button, menu);
-    host.appendChild(wrap);
+    overlayRoot().appendChild(wrap);
+    control = wrap;
+    positionControl();
+  }
+
+  function discoverDouyinProfileVideos() {
+    if (!/(^|\.)douyin\.com$/i.test(location.hostname) || /\/video\//i.test(location.pathname)) return;
+    document.querySelectorAll('a[href*="/video/"]').forEach(anchor => {
+      let url;
+      try { url = new URL(anchor.href, location.href); } catch { return; }
+      const match = url.pathname.match(/\/video\/(\d+)/);
+      if (!match) return;
+      const stableUrl = `https://www.douyin.com/video/${match[1]}`;
+      const image = anchor.querySelector('img');
+      const title = (anchor.getAttribute('aria-label') || image?.alt || anchor.title || anchor.textContent || `Douyin video ${match[1]}`).trim();
+      discoveredDouyin.set(stableUrl, { url: stableUrl, title: title.slice(0, 300), thumbnail: image?.currentSrc || image?.src || '', platform: 'Douyin' });
+    });
+    if (discoveredDouyin.size && discoveredDouyin.size !== discoveredCount) {
+      discoveredCount = discoveredDouyin.size;
+      chrome.runtime.sendMessage({ type: 'CPS_DISCOVERED_COLLECTION', pageUrl: location.href, title: document.title || 'Douyin profile', entries: [...discoveredDouyin.values()].slice(0, 500) }, () => void chrome.runtime.lastError);
+    }
   }
 
   function scan() {
+    discoverDouyinProfileVideos();
     const video = bestVideo();
-    if (!video) return;
-    if (video === activeVideo && video.getRootNode().querySelector?.('.cps-video-download')) return;
-    document.querySelectorAll('.cps-video-download').forEach(control => control.remove());
-    activeVideo = video;
-    createControl(video);
+    if (!video) { control?.remove(); control = null; activeVideo = null; return; }
+    if (video !== activeVideo || !control?.isConnected || control.parentNode !== overlayRoot()) {
+      activeVideo = video;
+      createControl(video);
+    } else positionControl();
   }
 
-  document.addEventListener('click', event => { if (!event.target.closest('.cps-video-download')) closeMenu(); }, true);
-  new MutationObserver(() => { clearTimeout(scanTimer); scanTimer = setTimeout(scan, 250); }).observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] });
-  addEventListener('scroll', () => { clearTimeout(scanTimer); scanTimer = setTimeout(scan, 160); }, true);
-  addEventListener('loadedmetadata', scan, true);
+  function scheduleScan(delay = 80) { clearTimeout(scanTimer); scanTimer = setTimeout(scan, delay); }
+
+  document.addEventListener('click', event => { if (!event.target.closest?.('.cps-video-download')) closeMenu(); }, true);
+  new MutationObserver(records => {
+    if (records.every(record => record.target?.closest?.('.cps-video-download'))) return;
+    scheduleScan(180);
+  }).observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['src', 'href'] });
+  addEventListener('scroll', () => scheduleScan(60), { capture: true, passive: true });
+  addEventListener('resize', () => scheduleScan(60), { passive: true });
+  addEventListener('loadedmetadata', () => scheduleScan(0), true);
+  addEventListener('fullscreenchange', () => scheduleScan(0));
   scan();
 })();

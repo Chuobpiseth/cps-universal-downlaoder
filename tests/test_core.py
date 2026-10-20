@@ -81,6 +81,42 @@ class CoreTests(unittest.TestCase):
         recovery = backend.classify_download_error(["ERROR: [facebook] 123: No video formats found!"])
         self.assertEqual("facebook-auth", recovery["code"])
 
+    def test_douyin_profile_is_a_collection_and_tracking_does_not_change_cache_key(self):
+        plain = "https://www.douyin.com/user/MS4wLjABExample"
+        tracked = plain + "?from_tab_name=main"
+        self.assertTrue(backend.looks_like_collection_url(plain))
+        self.assertTrue(backend.looks_like_collection_url("https://www.douyin.com/search/example"))
+        self.assertFalse(backend.looks_like_collection_url("https://www.douyin.com/video/1234567890123456789"))
+        self.assertEqual(backend.collection_cache_key(plain), backend.collection_cache_key(tracked))
+
+    def test_browser_captured_douyin_profile_returns_selectable_stable_urls(self):
+        api = backend.DesktopApi.__new__(backend.DesktopApi)
+        api._lock = threading.RLock()
+        api._browser_collections = {}
+        api._analysis_cache = {}
+        api._log_activity = lambda *_args: None
+        profile = "https://www.douyin.com/user/MS4wLjABExample?from_tab_name=main"
+        count = api.cache_browser_collection(profile, "Creator", [
+            {"url": "https://www.douyin.com/video/1234567890123456789?previous_page=app_code_link", "title": "First", "thumbnail": "https://example.com/1.jpg"},
+            {"url": "https://www.douyin.com/video/1234567890123456789", "title": "Duplicate"},
+            {"url": "https://evil.example/video/9", "title": "Rejected"},
+        ])
+        self.assertEqual(1, count)
+        result = api.analyze("https://www.douyin.com/user/MS4wLjABExample")
+        self.assertEqual("Douyin", result["platform"])
+        self.assertEqual("https://www.douyin.com/video/1234567890123456789", result["entries"][0]["url"])
+
+    def test_extension_overlay_does_not_restyle_or_mount_inside_video_player(self):
+        extension = Path(__file__).resolve().parents[1] / "browser-extension"
+        script = (extension / "content.js").read_text(encoding="utf-8")
+        styles = (extension / "styles.css").read_text(encoding="utf-8")
+        self.assertNotIn("host.style.setProperty", script)
+        self.assertNotIn("host.appendChild", script)
+        self.assertIn("overlayRoot().appendChild", script)
+        self.assertIn("position:fixed", styles)
+        self.assertIn("pointer-events:none", styles)
+        self.assertIn("return location.href", script)
+
     def test_clear_stopped_downloads_keeps_active_and_waiting(self):
         api = backend.DesktopApi.__new__(backend.DesktopApi)
         api._lock = threading.RLock()
