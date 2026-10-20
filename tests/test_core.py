@@ -116,6 +116,24 @@ class CoreTests(unittest.TestCase):
         self.assertIn("position:fixed", styles)
         self.assertIn("pointer-events:none", styles)
         self.assertIn("return location.href", script)
+        self.assertIn("visiblePostLinks", script)
+        self.assertIn("video.currentSrc", script)
+        popup = (extension / "popup.js").read_text(encoding="utf-8")
+        self.assertIn("CPS_GET_ACTIVE_MEDIA", popup)
+
+    def test_extension_job_preserves_page_referer_for_direct_media_fallback(self):
+        api = backend.DesktopApi.__new__(backend.DesktopApi)
+        api._lock = threading.RLock()
+        api.queue = []
+        api.settings = {"saveLocation": str(Path.home() / "Downloads")}
+        api._save_queue = lambda: None
+        api._log_activity = lambda *_args: None
+        result = api.add_urls(
+            [{"url": "https://cdn.example/video.mp4?signature=temporary", "referer": "https://www.tiktok.com/@creator/video/123"}],
+            {"kind": "Video", "quality": "Best", "format": "MP4"},
+        )
+        self.assertEqual(1, result["count"])
+        self.assertEqual("https://www.tiktok.com/@creator/video/123", api.queue[0]["referer"])
 
     def test_clear_stopped_downloads_keeps_active_and_waiting(self):
         api = backend.DesktopApi.__new__(backend.DesktopApi)
@@ -493,6 +511,7 @@ class CoreTests(unittest.TestCase):
                     "title": "Rick Astley",
                     "status": "Waiting",
                     "saveLocation": temp_dir,
+                    "referer": "https://www.tiktok.com/@creator/video/123",
                 }
                 api.queue = [item]
 
@@ -501,9 +520,16 @@ class CoreTests(unittest.TestCase):
                     def poll(self): return 0
                     def wait(self): return 0
 
-                with mock.patch("subprocess.Popen", return_value=MockProcess()):
+                captured = []
+                def fake_popen(args, **_kwargs):
+                    captured.extend(args)
+                    return MockProcess()
+
+                with mock.patch("subprocess.Popen", side_effect=fake_popen):
                     api._download_one(item)
                     self.assertEqual("Completed", item.get("status"))
+                    self.assertIn("--referer", captured)
+                    self.assertEqual("https://www.tiktok.com/@creator/video/123", captured[captured.index("--referer") + 1])
 
     def test_conversion_duration_ffmpeg_fallback(self):
         with tempfile.TemporaryDirectory() as temp_dir:

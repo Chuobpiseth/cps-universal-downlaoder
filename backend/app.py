@@ -351,7 +351,7 @@ class LocalExtensionServer:
                         return
                     try:
                         length = int(self.headers.get("Content-Length", "0"))
-                        maximum = 524288 if path == "/discover" else 16384
+                        maximum = 524288 if path == "/discover" else 65536
                         if length < 1 or length > maximum:
                             raise ValueError("Invalid payload size")
                         payload = json.loads(self.rfile.read(length))
@@ -362,7 +362,10 @@ class LocalExtensionServer:
                             return
                         kind = "Audio" if str(payload.get("mode", "video")).lower() == "audio" else "Video"
                         quality = str(payload.get("quality") or "Best")
-                        added = owner.api.add_urls([{"url": url}], {"kind": kind, "quality": quality, "format": "MP3" if kind == "Audio" else "MP4"})
+                        page_url = str(payload.get("pageUrl") or "").strip()
+                        if page_url:
+                            page_url = validate_url(page_url)
+                        added = owner.api.add_urls([{"url": url, "referer": page_url}], {"kind": kind, "quality": quality, "format": "MP3" if kind == "Audio" else "MP4"})
                         if path == "/download":
                             owner.api.start_downloads(added["ids"])
                         self._reply(202, {"accepted": True, "count": added["count"]})
@@ -798,6 +801,7 @@ class DesktopApi:
                     "title": source.get("title") or url,
                     "platform": source.get("platform") or "",
                     "thumbnail": source.get("thumbnail") or "",
+                    "referer": str(source.get("referer") or ""),
                     "kind": options.get("kind", "Video"),
                     "quality": options.get("quality", "Best"),
                     "format": options.get("format", "MP4"),
@@ -1029,6 +1033,9 @@ class DesktopApi:
                 ]
                 if self.settings.get("preventDuplicates", True):
                     args += ["--download-archive", str(DATA_DIR / "download-archive.txt")]
+                referer = str(item.get("referer") or "").strip()
+                if referer.startswith(("http://", "https://")):
+                    args += ["--referer", referer]
                 if item.get("kind") == "Audio":
                     audio_format = "best" if item.get("format") == "Original" else str(item.get("format", "MP3")).lower()
                     args += ["-x", "--audio-format", audio_format, "--audio-quality", "0"]

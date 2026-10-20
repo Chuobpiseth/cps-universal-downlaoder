@@ -36,13 +36,26 @@
         } catch { /* Ignore malformed site links. */ }
       }
     }
-    return location.href;
+    const visiblePostLinks = [...document.querySelectorAll('a[href]')].map(anchor => {
+      try {
+        const candidate = new URL(anchor.href, location.href);
+        if (!(candidate.hostname === hostKey || candidate.hostname.endsWith(`.${hostKey}`)) || !patterns[hostKey].test(candidate.pathname)) return null;
+        const rect = anchor.getBoundingClientRect();
+        if (rect.bottom <= 0 || rect.top >= innerHeight) return null;
+        return { href: candidate.href, distance: Math.abs((rect.top + rect.bottom) / 2 - innerHeight / 2) };
+      } catch { return null; }
+    }).filter(Boolean).sort((a, b) => a.distance - b.distance);
+    if (visiblePostLinks[0]) return visiblePostLinks[0].href;
+    // A social feed/profile URL is not itself a downloadable video. Returning
+    // an empty value lets the caller fall back to the active media stream.
+    return '';
   }
 
   function mediaAddress(video) {
     // Social CDN URLs expire and often require request headers. A stable page
     // URL lets the desktop engine resolve a fresh, authenticated stream.
-    if (PAGE_URL_HOSTS.test(location.hostname) || location.hostname === '1drv.ms') return stableSocialPage(video);
+    const stablePage = stableSocialPage(video);
+    if ((PAGE_URL_HOSTS.test(location.hostname) || location.hostname === '1drv.ms') && stablePage) return stablePage;
     const direct = video.currentSrc || video.src || video.querySelector('source[src]')?.src || '';
     if (/^https?:\/\//i.test(direct)) return direct;
     return discoveredHlsStream() || location.href;
@@ -76,10 +89,12 @@
   }
 
   function bestVideo() {
-    return openRoots().flatMap(root => [...root.querySelectorAll('video')]).filter(video => {
+    const regularVideos = [...document.querySelectorAll('video')];
+    const candidates = regularVideos.length ? regularVideos : openRoots().flatMap(root => [...root.querySelectorAll('video')]);
+    return candidates.filter(video => {
       const rect = video.getBoundingClientRect();
       const style = getComputedStyle(video);
-      return rect.width >= 220 && rect.height >= 120 && rect.bottom > 0 && rect.top < innerHeight
+      return rect.width >= 80 && rect.height >= 80 && rect.bottom > 0 && rect.top < innerHeight
         && style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity || 1) > 0;
     }).sort((a, b) => visibleArea(b) - visibleArea(a))[0];
   }
@@ -89,7 +104,7 @@
   function positionControl() {
     if (!control || !activeVideo?.isConnected) return;
     const rect = activeVideo.getBoundingClientRect();
-    const visible = rect.width >= 220 && rect.height >= 120 && rect.bottom > 0 && rect.top < innerHeight;
+    const visible = rect.width >= 80 && rect.height >= 80 && rect.bottom > 0 && rect.top < innerHeight;
     control.style.setProperty('display', visible ? 'block' : 'none', 'important');
     if (!visible) return;
     control.style.setProperty('right', `${Math.max(8, innerWidth - Math.min(rect.right, innerWidth) + 12)}px`, 'important');
@@ -155,13 +170,20 @@
 
   function scheduleScan(delay = 80) { clearTimeout(scanTimer); scanTimer = setTimeout(scan, delay); }
 
+  chrome.runtime.onMessage.addListener((message, _sender, respond) => {
+    if (message.type !== 'CPS_GET_ACTIVE_MEDIA') return false;
+    const video = bestVideo();
+    respond(video ? { ok: true, url: mediaAddress(video), pageUrl: location.href } : { ok: false, error: 'No visible video was detected on this page.' });
+    return false;
+  });
+
   document.addEventListener('click', event => { if (!event.target.closest?.('.cps-video-download')) closeMenu(); }, true);
   new MutationObserver(records => {
     if (records.every(record => record.target?.closest?.('.cps-video-download'))) return;
-    scheduleScan(180);
-  }).observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['src', 'href'] });
-  addEventListener('scroll', () => scheduleScan(60), { capture: true, passive: true });
-  addEventListener('resize', () => scheduleScan(60), { passive: true });
+    scheduleScan(350);
+  }).observe(document.documentElement, { childList: true, subtree: true });
+  addEventListener('scroll', () => { positionControl(); scheduleScan(240); }, { capture: true, passive: true });
+  addEventListener('resize', () => { positionControl(); scheduleScan(120); }, { passive: true });
   addEventListener('loadedmetadata', () => scheduleScan(0), true);
   addEventListener('fullscreenchange', () => scheduleScan(0));
   scan();

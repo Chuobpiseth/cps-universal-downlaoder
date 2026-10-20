@@ -41,7 +41,7 @@ Download and conversion destinations are configured independently in Settings. T
 
 History stores the exact final output path and automatically repairs older entries whose Unicode filenames were decoded incorrectly. The History page also contains a persistent activity log for analysis, queue, download, completion, cancellation, and error events.
 
-Version 1.2.7 isolates the browser download overlay from website video players, uses stable social-page URLs instead of expiring CDN links, and adds browser-assisted Douyin profile/category discovery with manual selection before download. Version 1.2.6 fixed YouTube HTTP 429 rate-limiting, GVS PO token issues, and bot-check errors with automatic multi-client fallback.
+Version 1.2.7 isolates the browser download overlay from website video players, removes high-frequency TikTok DOM scans, resolves the active feed post or stream with its Referer, and adds browser-assisted Douyin profile/category discovery with manual selection before download. Version 1.2.6 fixed YouTube HTTP 429 rate-limiting, GVS PO token issues, and bot-check errors with automatic multi-client fallback.
 
 The installer uses `%LOCALAPPDATA%\Programs\CPS Universal Downloader`, needs no administrator rights, and creates Start Menu and optional desktop shortcuts. Uninstalling the program leaves personal settings and history intact.
 
