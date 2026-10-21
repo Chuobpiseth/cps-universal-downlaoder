@@ -30,6 +30,7 @@ from urllib.parse import parse_qs, quote, urlparse
 
 APP_NAME = "CPS Universal Downloader Premium"
 APP_VERSION = "1.2.7"
+TIKTOK_FALLBACK_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 OPR/118.0.0.0"
 GITHUB_REPOSITORY = "Chuobpiseth/cps-universal-downlaoder"
 GITHUB_RELEASE_API = f"https://api.github.com/repos/{GITHUB_REPOSITORY}/releases/latest"
 CODECRAFT_API_BASE = "https://codecraftapi.com/v1"
@@ -666,7 +667,20 @@ class DesktopApi:
                 info = self._run_json(["--dump-single-json", "--no-playlist", "--no-warnings", "--socket-timeout", "15", url], timeout=90)
         except RuntimeError as exc:
             exc_str = str(exc).lower()
-            if ("youtube.com" in url.lower() or "youtu.be" in url.lower()) and any(m in exc_str for m in ("sign in to confirm you", "too many requests", "429", "po token", "visitor data")):
+            is_tiktok = "tiktok.com" in url.lower() or "vm.tiktok.com" in url.lower()
+            if is_tiktok and any(m in exc_str for m in ("403", "forbidden", "unexpected response", "unable to download webpage")):
+                try:
+                    self._log_activity("warning", "analyze", "TikTok blocked the default browser identity. Retrying with the compatibility identity...")
+                    retry_args = ["--user-agent", TIKTOK_FALLBACK_USER_AGENT]
+                    if looks_like_collection_url(url):
+                        info = self._run_json([*retry_args, "--dump-single-json", "--flat-playlist", "--yes-playlist", "--ignore-errors", "--no-warnings", "--socket-timeout", "20", "--playlist-end", "200", url], timeout=90)
+                    else:
+                        info = self._run_json([*retry_args, "--dump-single-json", "--no-playlist", "--no-warnings", "--socket-timeout", "20", url], timeout=90)
+                except Exception as retry_exc:
+                    message = self._friendly_analysis_error(url, str(retry_exc))
+                    self._log_activity("error", "analyze", message)
+                    raise RuntimeError(message) from retry_exc
+            elif ("youtube.com" in url.lower() or "youtu.be" in url.lower()) and any(m in exc_str for m in ("sign in to confirm you", "too many requests", "429", "po token", "visitor data")):
                 try:
                     self._log_activity("warning", "analyze", "YouTube rate-limited standard client. Retrying analysis with mobile fallback engine...")
                     fallback_args = ["--extractor-args", "youtube:player_skip=webpage,configs;player_client=ios,android,mweb"]
@@ -1005,7 +1019,7 @@ class DesktopApi:
             for attempt in (0, 1):
                 diagnostic_lines.clear()
                 base = list(self._base_args())
-                if attempt == 1 or item.get("_use_bot_fallback"):
+                if (attempt == 1 and item.get("_retry_kind") == "youtube") or item.get("_use_bot_fallback"):
                     filtered_base = []
                     skip_val = False
                     for token in base:
@@ -1017,6 +1031,8 @@ class DesktopApi:
                             continue
                         filtered_base.append(token)
                     base = [*filtered_base, "--extractor-args", "youtube:player_skip=webpage,configs;player_client=ios,android,mweb"]
+                if attempt == 1 and item.get("_retry_kind") == "tiktok":
+                    base += ["--user-agent", TIKTOK_FALLBACK_USER_AGENT]
 
                 args = [
                     str(tool_path("yt-dlp.exe")), *base, "--newline", "--no-color", "--progress", "--no-playlist", "--continue", "--part",
@@ -1097,8 +1113,16 @@ class DesktopApi:
                     is_youtube = "youtube" in str(item.get("url", "")).lower() or "[youtube]" in text_error
                     is_bot_check = any(m in text_error for m in ("sign in to confirm you", "too many requests", "429", "po token", "visitor data"))
                     if attempt == 0 and is_youtube and is_bot_check and not self._stop.is_set():
+                        item["_retry_kind"] = "youtube"
                         self._log_activity("warning", "download", "YouTube rate-limited standard client. Retrying with mobile fallback engine...", item)
                         time.sleep(1)
+                        continue
+                    is_tiktok = "tiktok.com" in str(item.get("url", "")).lower() or "tiktok.com" in str(item.get("referer", "")).lower() or "[tiktok]" in text_error
+                    is_tiktok_block = any(m in text_error for m in ("403", "forbidden", "unexpected response", "unable to download webpage"))
+                    if attempt == 0 and is_tiktok and is_tiktok_block and not self._stop.is_set():
+                        item["_retry_kind"] = "tiktok"
+                        self._log_activity("warning", "download", "TikTok blocked the default browser identity. Retrying with the compatibility identity...", item)
+                        time.sleep(0.5)
                         continue
                     recovery = classify_download_error(diagnostic_lines)
                     self._set_item(item, recovery=recovery)
@@ -1134,6 +1158,7 @@ class DesktopApi:
                 detail = " | ".join(line for line in diagnostic_lines[-6:] if line)
                 self._log_activity("error", "download", f"{exc}{f' — {detail}' if detail else ''}", item)
         finally:
+            item.pop("_retry_kind", None)
             path_record.unlink(missing_ok=True)
             with self._lock:
                 self._processes.pop(item["id"], None)

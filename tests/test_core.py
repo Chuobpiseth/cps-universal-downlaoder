@@ -117,7 +117,11 @@ class CoreTests(unittest.TestCase):
         self.assertIn("pointer-events:none", styles)
         self.assertIn("return location.href", script)
         self.assertIn("visiblePostLinks", script)
-        self.assertIn("video.currentSrc", script)
+        self.assertIn("video?.currentSrc", script)
+        self.assertIn("createControl(null)", script)
+        self.assertIn("hasTikTokTarget", script)
+        manifest = json.loads((extension / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual("3.5.2", manifest["version"])
         popup = (extension / "popup.js").read_text(encoding="utf-8")
         self.assertIn("CPS_GET_ACTIVE_MEDIA", popup)
 
@@ -326,6 +330,29 @@ class CoreTests(unittest.TestCase):
         self.assertNotIn("--flat-playlist", calls[0])
         self.assertEqual("Douyin", result["platform"])
 
+    def test_tiktok_analysis_retries_403_with_compatibility_identity(self):
+        api = backend.DesktopApi.__new__(backend.DesktopApi)
+        api._log_activity = lambda *_args: None
+        calls = []
+
+        def run_json(args, timeout=120):
+            calls.append(args)
+            if len(calls) == 1:
+                raise RuntimeError("[TikTok] HTTP Error 403: Forbidden")
+            return {
+                "id": "7680533157996678420",
+                "title": "TikTok test",
+                "extractor_key": "TikTok",
+                "formats": [{"format_id": "download_addr-0", "ext": "mp4"}],
+            }
+
+        api._run_json = run_json
+        result = api.analyze("https://www.tiktok.com/@miacelinenguyen/video/7680533157996678420")
+        self.assertEqual(2, len(calls))
+        self.assertIn("--user-agent", calls[1])
+        self.assertIn(backend.TIKTOK_FALLBACK_USER_AGENT, calls[1])
+        self.assertEqual("TikTok test", result["title"])
+
     def test_sharepoint_errors_explain_permission_boundary(self):
         api = backend.DesktopApi.__new__(backend.DesktopApi)
         api.settings = {"browserCookies": "Edge"}
@@ -530,6 +557,44 @@ class CoreTests(unittest.TestCase):
                     self.assertEqual("Completed", item.get("status"))
                     self.assertIn("--referer", captured)
                     self.assertEqual("https://www.tiktok.com/@creator/video/123", captured[captured.index("--referer") + 1])
+
+    def test_tiktok_download_retries_403_with_compatibility_identity(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with mock.patch.object(backend, "DATA_DIR", Path(temp_dir)):
+                api = backend.DesktopApi()
+                item = {
+                    "id": "tiktok-403",
+                    "url": "https://www.tiktok.com/@miacelinenguyen/video/7680533157996678420",
+                    "title": "TikTok test",
+                    "status": "Waiting",
+                    "saveLocation": temp_dir,
+                }
+                api.queue = [item]
+
+                class MockProcess:
+                    def __init__(self, code, output):
+                        self._code = code
+                        self.stdout = output
+                    def poll(self): return self._code
+                    def wait(self): return self._code
+
+                calls = []
+                processes = [
+                    MockProcess(1, ["ERROR: [TikTok] HTTP Error 403: Forbidden"]),
+                    MockProcess(0, ["meta:title: TikTok test", "download:download: 100%|1.0MiB/s|00:00"]),
+                ]
+
+                def fake_popen(args, **_kwargs):
+                    calls.append(args)
+                    return processes.pop(0)
+
+                with mock.patch("subprocess.Popen", side_effect=fake_popen), mock.patch.object(backend.time, "sleep"):
+                    api._download_one(item)
+                self.assertEqual("Completed", item.get("status"))
+                self.assertEqual(2, len(calls))
+                self.assertIn("--user-agent", calls[1])
+                self.assertIn(backend.TIKTOK_FALLBACK_USER_AGENT, calls[1])
+                self.assertNotIn("_retry_kind", item)
 
     def test_conversion_duration_ffmpeg_fallback(self):
         with tempfile.TemporaryDirectory() as temp_dir:

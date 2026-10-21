@@ -56,7 +56,7 @@
     // URL lets the desktop engine resolve a fresh, authenticated stream.
     const stablePage = stableSocialPage(video);
     if ((PAGE_URL_HOSTS.test(location.hostname) || location.hostname === '1drv.ms') && stablePage) return stablePage;
-    const direct = video.currentSrc || video.src || video.querySelector('source[src]')?.src || '';
+    const direct = video?.currentSrc || video?.src || video?.querySelector?.('source[src]')?.src || '';
     if (/^https?:\/\//i.test(direct)) return direct;
     return discoveredHlsStream() || location.href;
   }
@@ -102,7 +102,16 @@
   const overlayRoot = () => document.fullscreenElement || document.documentElement;
 
   function positionControl() {
-    if (!control || !activeVideo?.isConnected) return;
+    if (!control) return;
+    // TikTok can paint the player without exposing a usable <video> node to
+    // extension scripts. Keep a page-level control available in that case.
+    if (!activeVideo) {
+      control.style.setProperty('display', 'block', 'important');
+      control.style.setProperty('right', '18px', 'important');
+      control.style.setProperty('top', '88px', 'important');
+      return;
+    }
+    if (!activeVideo.isConnected) return;
     const rect = activeVideo.getBoundingClientRect();
     const visible = rect.width >= 80 && rect.height >= 80 && rect.bottom > 0 && rect.top < innerHeight;
     control.style.setProperty('display', visible ? 'block' : 'none', 'important');
@@ -161,6 +170,15 @@
   function scan() {
     discoverDouyinProfileVideos();
     const video = bestVideo();
+    const isTikTokPage = /(^|\.)tiktok\.com$/i.test(location.hostname);
+    const hasTikTokTarget = isTikTokPage && window === window.top && Boolean(stableSocialPage(null) || discoveredHlsStream());
+    if (!video && hasTikTokTarget) {
+      if (activeVideo !== null || !control?.isConnected || control.parentNode !== overlayRoot()) {
+        activeVideo = null;
+        createControl(null);
+      } else positionControl();
+      return;
+    }
     if (!video) { control?.remove(); control = null; activeVideo = null; return; }
     if (video !== activeVideo || !control?.isConnected || control.parentNode !== overlayRoot()) {
       activeVideo = video;
@@ -173,7 +191,11 @@
   chrome.runtime.onMessage.addListener((message, _sender, respond) => {
     if (message.type !== 'CPS_GET_ACTIVE_MEDIA') return false;
     const video = bestVideo();
-    respond(video ? { ok: true, url: mediaAddress(video), pageUrl: location.href } : { ok: false, error: 'No visible video was detected on this page.' });
+    const isTikTokPage = /(^|\.)tiktok\.com$/i.test(location.hostname);
+    const hasTikTokTarget = isTikTokPage && Boolean(stableSocialPage(video) || discoveredHlsStream());
+    respond(video || hasTikTokTarget
+      ? { ok: true, url: mediaAddress(video), pageUrl: location.href }
+      : { ok: false, error: 'No visible video was detected on this page.' });
     return false;
   });
 

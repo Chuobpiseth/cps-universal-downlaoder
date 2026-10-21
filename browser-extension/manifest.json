@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CPS Universal Downloader Extension",
-  "version": "3.5.1",
+  "version": "3.5.2",
   "description": "Send supported video pages to CPS Universal Downloader Premium.",
   "permissions": ["activeTab", "contextMenus", "storage", "scripting"],
   "host_permissions": ["http://127.0.0.1:38473/*"],
