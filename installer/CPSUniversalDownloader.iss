@@ -1,5 +1,5 @@
 #define MyAppName "CPS Universal Downloader Premium"
-#define MyAppVersion "1.2.8"
+#define MyAppVersion "1.2.9"
 #define MyAppPublisher "Chuob Piseth"
 #define MyAppExeName "CPSUniversalDownloader.exe"
 

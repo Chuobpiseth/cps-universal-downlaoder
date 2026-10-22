@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CPS Universal Downloader Extension",
-  "version": "3.6.0",
+  "version": "3.7.0",
   "description": "Download supported web video and Telegram Web media with CPS Universal Downloader Premium.",
   "permissions": ["activeTab", "contextMenus", "storage", "scripting"],
   "host_permissions": ["http://127.0.0.1:38473/*"],
@@ -16,6 +16,11 @@
       "css": ["styles.css"],
       "run_at": "document_idle",
       "all_frames": true
+    },
+    {
+      "matches": ["https://web.telegram.org/*", "https://webk.telegram.org/*", "https://webz.telegram.org/*"],
+      "js": ["telegram-bridge.js"],
+      "run_at": "document_start"
     },
     {
       "matches": ["https://web.telegram.org/*", "https://webk.telegram.org/*", "https://webz.telegram.org/*"],

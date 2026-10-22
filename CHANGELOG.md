@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.9 CPS-routed Telegram downloads - 2026-10-22
+
+- Routed Telegram Web video, audio, and image transfers into CPS Universal Downloader instead of the browser save dialog.
+- Added chunked authenticated localhost transfer so signed-in and blob-backed Telegram media can be saved without exposing Telegram session credentials.
+- Added live Telegram items to Downloads, completion records to History, app-configured save locations, cancellation, safe filenames, and collision-free output names.
+- Updated the bundled browser extension to 3.7.0.
+
 ## 1.2.8 Telegram and maximum-quality update - 2026-10-22
 
 - Added Telegram Web media controls directly to browser extension 3.6.0; Tampermonkey is not required.

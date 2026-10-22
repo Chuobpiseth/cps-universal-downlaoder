@@ -29,7 +29,7 @@ from urllib.parse import parse_qs, quote, urlparse
 
 
 APP_NAME = "CPS Universal Downloader Premium"
-APP_VERSION = "1.2.8"
+APP_VERSION = "1.2.9"
 TIKTOK_FALLBACK_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 OPR/118.0.0.0"
 GITHUB_REPOSITORY = "Chuobpiseth/cps-universal-downlaoder"
 GITHUB_RELEASE_API = f"https://api.github.com/repos/{GITHUB_REPOSITORY}/releases/latest"
@@ -352,15 +352,32 @@ class LocalExtensionServer:
                         self._reply(401, {"error": "Unauthorized"})
                         return
                     path = self.path.split("?", 1)[0]
-                    if path not in {"/add", "/analyze", "/download", "/discover"}:
+                    upload_paths = {"/telegram/start", "/telegram/chunk", "/telegram/finish", "/telegram/cancel"}
+                    if path not in {"/add", "/analyze", "/download", "/discover", *upload_paths}:
                         self._reply(404, {"error": "Not found"})
                         return
                     try:
                         length = int(self.headers.get("Content-Length", "0"))
-                        maximum = 524288 if path == "/discover" else 65536
+                        maximum = 2097152 if path == "/telegram/chunk" else 524288 if path == "/discover" else 65536
                         if length < 1 or length > maximum:
                             raise ValueError("Invalid payload size")
                         payload = json.loads(self.rfile.read(length))
+                        if path == "/telegram/start":
+                            result = owner.api._start_browser_media_upload(payload)
+                            self._reply(201, result)
+                            return
+                        if path == "/telegram/chunk":
+                            result = owner.api._append_browser_media_chunk(payload)
+                            self._reply(200, result)
+                            return
+                        if path == "/telegram/finish":
+                            result = owner.api._finish_browser_media_upload(payload)
+                            self._reply(200, result)
+                            return
+                        if path == "/telegram/cancel":
+                            result = owner.api._cancel_browser_media_upload(payload)
+                            self._reply(200, result)
+                            return
                         url = validate_url(str(payload.get("url", "")))
                         if path == "/discover":
                             count = owner.api.cache_browser_collection(url, str(payload.get("title") or "Douyin profile"), payload.get("entries"))
@@ -438,6 +455,9 @@ class DesktopApi:
         self.conversions: list[dict[str, Any]] = []
         self._analysis_cache: dict[str, tuple[float, dict[str, Any]]] = {}
         self._browser_collections: dict[str, tuple[float, dict[str, Any]]] = {}
+        self._browser_uploads: dict[str, dict[str, Any]] = {}
+        self._browser_upload_dir = DATA_DIR / "browser-uploads"
+        self._browser_upload_dir.mkdir(parents=True, exist_ok=True)
         for item in self.queue:
             if item.get("status") in {"Downloading", "Processing", "Analyzing"}:
                 item["status"] = "Waiting"
@@ -1234,6 +1254,145 @@ class DesktopApi:
         with self._lock:
             item.update(changes)
             self._save_queue()
+
+    @staticmethod
+    def _safe_media_filename(value: str) -> str:
+        name = Path(str(value or "Telegram media").replace("\\", "/")).name
+        name = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "_", name).strip(" .")
+        if not name:
+            name = "Telegram media.bin"
+        stem, suffix = Path(name).stem[:150].strip(" ."), Path(name).suffix[:12]
+        return f"{stem or 'Telegram media'}{suffix}"
+
+    @staticmethod
+    def _unique_output_path(folder: Path, file_name: str) -> Path:
+        candidate = folder / file_name
+        counter = 2
+        while candidate.exists():
+            candidate = folder / f"{Path(file_name).stem}_{counter}{Path(file_name).suffix}"
+            counter += 1
+        return candidate
+
+    def _start_browser_media_upload(self, payload: dict[str, Any]) -> dict[str, Any]:
+        file_name = self._safe_media_filename(str(payload.get("fileName") or "Telegram media.bin"))
+        kind = str(payload.get("kind") or "Video").capitalize()
+        if kind not in {"Video", "Audio", "Image"}:
+            kind = "Video"
+        total_value = payload.get("total")
+        total = int(total_value) if total_value not in (None, "") else 0
+        if total < 0 or total > 1024 * 1024 * 1024 * 100:
+            raise ValueError("Invalid media size")
+        upload_id = uuid.uuid4().hex
+        item_id = uuid.uuid4().hex
+        output_dir = Path(self.settings.get("saveLocation") or Path.home() / "Downloads")
+        output_dir.mkdir(parents=True, exist_ok=True)
+        destination = self._unique_output_path(output_dir, file_name)
+        temporary = self._browser_upload_dir / f"{upload_id}.part"
+        temporary.write_bytes(b"")
+        item = {
+            "id": item_id,
+            "url": str(payload.get("pageUrl") or "https://web.telegram.org/"),
+            "title": file_name,
+            "platform": "Telegram",
+            "thumbnail": "",
+            "kind": kind,
+            "quality": "Original",
+            "format": destination.suffix.lstrip(".").upper() or "Media",
+            "priority": 3,
+            "selected": True,
+            "status": "Downloading",
+            "progress": 0,
+            "speed": "0 B/s",
+            "eta": "—",
+            "outputPath": "",
+            "error": "",
+            "createdAt": datetime.now().isoformat(timespec="seconds"),
+        }
+        with self._lock:
+            self.queue.append(item)
+            self._browser_uploads[upload_id] = {
+                "item": item, "temporary": temporary, "destination": destination,
+                "received": 0, "total": total, "started": time.monotonic(),
+            }
+            self._save_queue()
+        self._log_activity("info", "telegram", f"Receiving Telegram media: {file_name}", item)
+        return {"uploadId": upload_id, "itemId": item_id, "fileName": destination.name}
+
+    def _append_browser_media_chunk(self, payload: dict[str, Any]) -> dict[str, Any]:
+        upload_id = str(payload.get("uploadId") or "")
+        try:
+            chunk = base64.b64decode(str(payload.get("data") or ""), validate=True)
+        except Exception as exc:
+            raise ValueError("Invalid media chunk") from exc
+        if not chunk or len(chunk) > 1024 * 1024:
+            raise ValueError("Invalid media chunk size")
+        with self._lock:
+            upload = self._browser_uploads.get(upload_id)
+            if not upload:
+                raise ValueError("This Telegram transfer is no longer active")
+            offset = int(payload.get("offset", -1))
+            if offset != upload["received"]:
+                raise ValueError("Telegram transfer chunk is out of order")
+            announced_total = int(payload.get("total") or 0)
+            if announced_total:
+                if announced_total < upload["received"] + len(chunk) or announced_total > 1024 * 1024 * 1024 * 100:
+                    raise ValueError("Invalid Telegram media size")
+                if upload["total"] not in {0, announced_total}:
+                    raise ValueError("Telegram media size changed during transfer")
+                upload["total"] = announced_total
+            with upload["temporary"].open("ab") as target:
+                target.write(chunk)
+            upload["received"] += len(chunk)
+            received = upload["received"]
+            total = upload["total"]
+            elapsed = max(time.monotonic() - upload["started"], 0.1)
+            progress = min(99, round(received * 100 / total, 1)) if total else 0
+            upload["item"].update({
+                "progress": progress,
+                "speed": f"{received / elapsed / (1024 * 1024):.1f} MiB/s",
+            })
+            self._save_queue()
+        return {"received": received, "progress": progress}
+
+    def _finish_browser_media_upload(self, payload: dict[str, Any]) -> dict[str, Any]:
+        upload_id = str(payload.get("uploadId") or "")
+        with self._lock:
+            upload = self._browser_uploads.pop(upload_id, None)
+            if not upload:
+                raise ValueError("This Telegram transfer is no longer active")
+            item = upload["item"]
+            expected = int(payload.get("total") or upload["total"] or 0)
+            if expected and upload["received"] != expected:
+                self._browser_uploads[upload_id] = upload
+                raise ValueError("Telegram transfer is incomplete")
+            requested_name = self._safe_media_filename(str(payload.get("fileName") or upload["destination"].name))
+            destination = self._unique_output_path(upload["destination"].parent, requested_name)
+            shutil.move(str(upload["temporary"]), str(destination))
+            completed_at = datetime.now().isoformat(timespec="seconds")
+            item.update({
+                "title": destination.name, "format": destination.suffix.lstrip(".").upper() or "Media",
+                "status": "Completed", "progress": 100, "speed": "—", "eta": "00:00",
+                "outputPath": str(destination), "completedAt": completed_at,
+            })
+            self._save_queue()
+            self.history[:] = [entry for entry in self.history if entry.get("id") != item["id"]]
+            self.history.insert(0, dict(item))
+            self.history[:] = self.history[:500]
+            self._save_history()
+        self._log_activity("success", "telegram", f"Saved Telegram media: {destination}", item)
+        return {"saved": True, "path": str(destination), "itemId": item["id"]}
+
+    def _cancel_browser_media_upload(self, payload: dict[str, Any]) -> dict[str, Any]:
+        upload_id = str(payload.get("uploadId") or "")
+        with self._lock:
+            upload = self._browser_uploads.pop(upload_id, None)
+            if not upload:
+                return {"cancelled": False}
+            upload["temporary"].unlink(missing_ok=True)
+            upload["item"].update({"status": "Cancelled", "speed": "—", "eta": "—"})
+            self._save_queue()
+        self._log_activity("warning", "telegram", "Telegram media transfer was cancelled.", upload["item"])
+        return {"cancelled": True}
 
     def cancel_downloads(self) -> bool:
         self._stop.set()

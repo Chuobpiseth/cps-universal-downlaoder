@@ -211,6 +211,35 @@
   const contentRangeRegex = /^bytes (\d+)-(\d+)\/(\d+)$/;
   const REFRESH_DELAY = 2000;
   const DOWNLOAD_CHUNK_SIZE = 4 * 1024 * 1024;
+  const CPS_UPLOAD_CHUNK_SIZE = 512 * 1024;
+  const cpsPendingRequests = new Map();
+  let cpsRequestSequence = 0;
+  window.addEventListener("message", (event) => {
+    const message = event.data;
+    if (event.source !== window || message?.source !== "cps-telegram-extension") return;
+    const pending = cpsPendingRequests.get(message.requestId);
+    if (!pending) return;
+    cpsPendingRequests.delete(message.requestId);
+    clearTimeout(pending.timer);
+    if (message.ok) pending.resolve(message.data || {});
+    else pending.reject(new Error(message.error || "Open CPS Universal Downloader and try again."));
+  });
+  const cpsRequest = (action, payload) => new Promise((resolve, reject) => {
+    const requestId = `cps-${Date.now()}-${++cpsRequestSequence}`;
+    const timer = setTimeout(() => {
+      cpsPendingRequests.delete(requestId);
+      reject(new Error("CPS Universal Downloader did not respond. Open the app and reconnect the extension token."));
+    }, 30000);
+    cpsPendingRequests.set(requestId, { resolve, reject, timer });
+    window.postMessage({ source: "cps-telegram-page", requestId, action, payload }, location.origin);
+  });
+  const bytesToBase64 = (bytes) => {
+    let binary = "";
+    for (let offset = 0; offset < bytes.byteLength; offset += 0x8000) {
+      binary += String.fromCharCode(...bytes.subarray(offset, Math.min(offset + 0x8000, bytes.byteLength)));
+    }
+    return btoa(binary);
+  };
   const fetchMediaPart = async (url, offset, total, kind, options = {}) => {
     const controller = new AbortController();
     const abort = () => controller.abort(options.signal.reason);
@@ -266,6 +295,7 @@
         }
       }
       if (!res.body) throw downloadError("errorEmpty");
+      options.onMetadata?.(mime, totalSize ?? expectedSize ?? null);
       reader = res.body.getReader();
       controller.signal.addEventListener("abort", () => {
         reader.cancel().catch(() => {});
@@ -477,8 +507,6 @@
     task.resolve({ state, fileName: task.fileName, received: task.received });
   };
   const runTask = async (task) => {
-    const parts = [];
-    let writable;
     const checkCancelled = () => {
       if (task.controller.signal.aborted) throw task.controller.signal.reason;
     };
@@ -486,7 +514,13 @@
       checkCancelled();
       task.state = "preparing";
       renderTask(task);
-      if (task.handle) writable = await task.handle.createWritable();
+      const started = await cpsRequest("start", {
+        fileName: task.fileName,
+        kind: task.kind,
+        total: task.total,
+        pageUrl: location.href,
+      });
+      task.uploadId = started.uploadId;
       checkCancelled();
       task.state = "downloading";
       task.startedAt = performance.now();
@@ -497,7 +531,22 @@
       do {
         const part = await fetchMediaPart(task.url, offset, total, task.kind, {
           signal: task.controller.signal,
-          write: writable ? (chunk) => writable.write(chunk) : undefined,
+          onMetadata: (_mime, size) => {
+            task.total = size;
+          },
+          write: async (chunk) => {
+            for (let chunkOffset = 0; chunkOffset < chunk.byteLength; chunkOffset += CPS_UPLOAD_CHUNK_SIZE) {
+              checkCancelled();
+              const slice = chunk.subarray(chunkOffset, Math.min(chunkOffset + CPS_UPLOAD_CHUNK_SIZE, chunk.byteLength));
+              await cpsRequest("chunk", {
+                uploadId: task.uploadId,
+                offset: task.uploaded,
+                total: task.total,
+                data: bytesToBase64(slice),
+              });
+              task.uploaded += slice.byteLength;
+            }
+          },
           onProgress: (received, size) => {
             task.received = received;
             task.total = size;
@@ -512,7 +561,6 @@
           },
         });
         checkCancelled();
-        if (!writable) parts.push(part.blob);
         offset = part.nextOffset;
         total = part.totalSize;
         mime = part.mime;
@@ -524,18 +572,15 @@
       checkCancelled();
       task.state = "saving";
       renderTask(task);
-      if (writable) await writable.close();
-      else saveMediaBlob(new Blob(parts, { type: mime }), task.fileName);
-      finishTask(task, writable ? "completed" : "handedOff");
+      await cpsRequest("finish", { uploadId: task.uploadId, fileName: task.fileName, mimeType: mime, total });
+      task.uploadId = null;
+      finishTask(task, "completed");
     } catch (error) {
-      if (writable) {
-        try { await writable.abort(); } catch { /* Already closed or errored. */ }
-      }
+      if (task.uploadId) cpsRequest("cancel", { uploadId: task.uploadId }).catch(() => {});
       if (task.controller.signal.aborted || error.name === "AbortError") finishTask(task, "cancelled");
       else finishTask(task, "failed", error);
     } finally {
-      parts.length = 0;
-      task.handle = null;
+      task.uploadId = null;
     }
   };
   const pumpDownloads = () => {
@@ -569,33 +614,21 @@
       id: Math.random().toString(36).slice(2) + Date.now().toString(36),
       key, url, kind, fileName: getDownloadFileName(url, getMediaMetadata(url)?.mimeType, kind),
       state: "preparing", received: 0, total: null, controller: new AbortController(),
+      uploaded: 0, uploadId: null,
       startedAt: performance.now(), renderedAt: 0, finished: false,
     };
     task.promise = new Promise(resolve => { task.resolve = resolve; });
     downloadTasks.set(task.id, task);
     activeDownloads.set(key, task);
     showTask(task);
-    const enqueue = (handle) => {
+    const enqueue = () => {
       if (task.finished) return;
-      task.handle = handle;
       task.state = "queued";
       renderTask(task);
       downloadQueue.push(task);
       pumpDownloads();
     };
-    try {
-      const pageWindow = typeof unsafeWindow === "undefined" ? window : unsafeWindow;
-      if (kind !== "image" && typeof pageWindow.showSaveFilePicker === "function" &&
-          pageWindow.self === pageWindow.top) {
-        Promise.resolve(pageWindow.showSaveFilePicker({ suggestedName: task.fileName }))
-          .then(enqueue, (error) => {
-            if (error.name === "AbortError") finishTask(task, "cancelled");
-            else finishTask(task, "failed", error);
-          });
-      } else enqueue(null);
-    } catch (error) {
-      finishTask(task, "failed", error);
-    }
+    enqueue();
     return task.promise;
   };
   const tel_download_video = (url) => downloadMedia(url, "video");

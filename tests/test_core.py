@@ -1,4 +1,5 @@
 import importlib.util
+import base64
 import io
 import json
 import os
@@ -121,15 +122,47 @@ class CoreTests(unittest.TestCase):
         self.assertIn("createControl(null)", script)
         self.assertIn("hasTikTokTarget", script)
         manifest = json.loads((extension / "manifest.json").read_text(encoding="utf-8"))
-        self.assertEqual("3.6.0", manifest["version"])
+        self.assertEqual("3.7.0", manifest["version"])
         telegram_entry = next(item for item in manifest["content_scripts"] if "telegram-content.js" in item.get("js", []))
         self.assertIn("https://web.telegram.org/*", telegram_entry["matches"])
         self.assertEqual("MAIN", telegram_entry["world"])
+        telegram_bridge = next(item for item in manifest["content_scripts"] if "telegram-bridge.js" in item.get("js", []))
+        self.assertEqual("document_start", telegram_bridge["run_at"])
         telegram_script = (extension / "telegram-content.js").read_text(encoding="utf-8")
         self.assertIn("Telegram Media Downloader (EN/KM)", telegram_script)
         self.assertNotIn("GM_download", telegram_script)
+        self.assertIn('cpsRequest("chunk"', telegram_script)
+        self.assertNotIn("showSaveFilePicker", telegram_script)
+        background = (extension / "background.js").read_text(encoding="utf-8")
+        self.assertIn("CPS_TELEGRAM_UPLOAD", background)
         popup = (extension / "popup.js").read_text(encoding="utf-8")
         self.assertIn("CPS_GET_ACTIVE_MEDIA", popup)
+
+    def test_telegram_stream_is_saved_by_app_and_added_to_history(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            api = backend.DesktopApi.__new__(backend.DesktopApi)
+            api._lock = threading.RLock()
+            api.settings = {"saveLocation": str(root / "downloads")}
+            api.queue = []
+            api.history = []
+            api.activity = []
+            api._queue_file = root / "queue.json"
+            api._history_file = root / "history.json"
+            api._activity_file = root / "activity.json"
+            api._browser_uploads = {}
+            api._browser_upload_dir = root / "uploads"
+            api._browser_upload_dir.mkdir()
+            content = b"telegram-media-content"
+            started = api._start_browser_media_upload({"fileName": "clip.mp4", "kind": "video", "pageUrl": "https://web.telegram.org/k/"})
+            encoded = base64.b64encode(content).decode("ascii")
+            progress = api._append_browser_media_chunk({"uploadId": started["uploadId"], "offset": 0, "total": len(content), "data": encoded})
+            self.assertEqual(len(content), progress["received"])
+            finished = api._finish_browser_media_upload({"uploadId": started["uploadId"], "fileName": "clip.mp4", "total": len(content)})
+            output = Path(finished["path"])
+            self.assertEqual(content, output.read_bytes())
+            self.assertEqual("Completed", api.queue[0]["status"])
+            self.assertEqual(str(output), api.history[0]["outputPath"])
 
     def test_extension_job_preserves_page_referer_for_direct_media_fallback(self):
         api = backend.DesktopApi.__new__(backend.DesktopApi)

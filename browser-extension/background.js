@@ -28,10 +28,29 @@ async function sendDiscoveredCollection(message) {
   return response.json();
 }
 
+async function sendTelegramUpload(action, payload = {}) {
+  const paths = { start: 'start', chunk: 'chunk', finish: 'finish', cancel: 'cancel' };
+  if (!paths[action]) throw new Error('Invalid Telegram transfer action.');
+  const token = await getToken();
+  const response = await fetch(`${API}/telegram/${paths[action]}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CPS-Token': token },
+    body: JSON.stringify(payload),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(response.status === 401
+      ? 'Connect the extension token in CPS Settings.'
+      : (data.error || 'Open CPS Universal Downloader and try again.'));
+  }
+  return data;
+}
+
 chrome.contextMenus.onClicked.addListener((info, tab) => sendUrl(info.linkUrl || info.srcUrl || info.pageUrl || tab.url).catch(() => {}));
 chrome.runtime.onMessage.addListener((message, sender, respond) => {
   if (message.type === 'CPS_SEND_URL') { sendUrl(message.url, message.mode).then(data => respond({ ok: true, data })).catch(error => respond({ ok: false, error: error.message })); return true; }
   if (message.type === 'CPS_DOWNLOAD') { sendUrl(message.url, message.mode, message.quality, message.pageUrl).then(data => respond({ ok: true, data })).catch(error => respond({ ok: false, error: error.message })); return true; }
   if (message.type === 'CPS_DISCOVERED_COLLECTION') { sendDiscoveredCollection(message).then(data => respond({ ok: true, data })).catch(error => respond({ ok: false, error: error.message })); return true; }
+  if (message.type === 'CPS_TELEGRAM_UPLOAD') { sendTelegramUpload(message.action, message.payload).then(data => respond({ ok: true, data })).catch(error => respond({ ok: false, error: error.message })); return true; }
   if (message.type === 'CPS_STATUS') { getToken().then(token => fetch(`${API}/status`, { headers: { 'X-CPS-Token': token } })).then(r => r.ok ? r.json() : Promise.reject()).then(data => respond({ ok: true, data })).catch(() => respond({ ok: false })); return true; }
 });
