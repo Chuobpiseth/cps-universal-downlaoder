@@ -5,7 +5,7 @@ $deno = Join-Path $parent 'tools\deno.exe'
 $python = 'python'
 $venv = Join-Path $project '.venv'
 $frontend = Join-Path $project 'frontend'
-$dist = Join-Path $project 'build-v1.2.7'
+$dist = Join-Path $project 'build-v1.2.8'
 $release = Join-Path $project 'release'
 $appName = 'CPSUniversalDownloader.exe'
 
@@ -75,10 +75,10 @@ if ($LASTEXITCODE -ne 0) { throw 'Onedir application build failed.' }
 if ($LASTEXITCODE -ne 0) { throw 'Portable executable build failed.' }
 
 $portable = Join-Path $dist $appName
-$releaseExe = Join-Path $release 'CPS-Universal-Downloader-v1.2.7-Portable.exe'
+$releaseExe = Join-Path $release 'CPS-Universal-Downloader-v1.2.8-Portable.exe'
 Copy-Item -LiteralPath $portable -Destination $releaseExe -Force
 
-$zip = Join-Path $release 'CPS-Universal-Downloader-v1.2.7-Windows-x64-Single-EXE.zip'
+$zip = Join-Path $release 'CPS-Universal-Downloader-v1.2.8-Windows-x64-Single-EXE.zip'
 if (Test-Path -LiteralPath $zip) { Remove-Item -LiteralPath $zip -Force }
 Compress-Archive -LiteralPath $portable -DestinationPath $zip -CompressionLevel Optimal
 Write-Host "Onedir application: $(Join-Path $onedirDist 'CPSUniversalDownloader')"

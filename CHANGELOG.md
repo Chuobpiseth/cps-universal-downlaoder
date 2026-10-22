@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.8 Telegram and maximum-quality update - 2026-10-22
+
+- Added Telegram Web media controls directly to browser extension 3.6.0; Tampermonkey is not required.
+- Restricted the Telegram integration to Telegram Web and kept the generic CPS overlay off those pages to prevent duplicate controls.
+- Changed automatic Best quality to select the highest-resolution video stream and merge the best available audio with FFmpeg.
+- Cleared stale exact-format selections whenever a Quick Preset is selected.
+- Added automatic best-audio merging when users manually select a video-only 2K or 4K stream.
+
 ## 1.2.7 TikTok compatibility hotfix - 2026-10-21
 
 - Added automatic TikTok analysis and download retry for current HTTP 403 browser-identity blocks.

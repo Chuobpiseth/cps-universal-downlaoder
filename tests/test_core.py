@@ -35,7 +35,7 @@ class CoreTests(unittest.TestCase):
         self.assertIn("/best", selector)
 
     def test_best_quality_uses_separate_video_and_audio(self):
-        self.assertEqual("bv*+ba/b/best", backend.format_selector("Best"))
+        self.assertEqual("bestvideo+bestaudio/best", backend.format_selector("Best"))
 
     def test_progress_parser(self):
         progress = backend.parse_progress("download: 62.5%|3.2MiB/s|00:18")
@@ -121,7 +121,13 @@ class CoreTests(unittest.TestCase):
         self.assertIn("createControl(null)", script)
         self.assertIn("hasTikTokTarget", script)
         manifest = json.loads((extension / "manifest.json").read_text(encoding="utf-8"))
-        self.assertEqual("3.5.2", manifest["version"])
+        self.assertEqual("3.6.0", manifest["version"])
+        telegram_entry = next(item for item in manifest["content_scripts"] if "telegram-content.js" in item.get("js", []))
+        self.assertIn("https://web.telegram.org/*", telegram_entry["matches"])
+        self.assertEqual("MAIN", telegram_entry["world"])
+        telegram_script = (extension / "telegram-content.js").read_text(encoding="utf-8")
+        self.assertIn("Telegram Media Downloader (EN/KM)", telegram_script)
+        self.assertNotIn("GM_download", telegram_script)
         popup = (extension / "popup.js").read_text(encoding="utf-8")
         self.assertIn("CPS_GET_ACTIVE_MEDIA", popup)
 
@@ -557,6 +563,33 @@ class CoreTests(unittest.TestCase):
                     self.assertEqual("Completed", item.get("status"))
                     self.assertIn("--referer", captured)
                     self.assertEqual("https://www.tiktok.com/@creator/video/123", captured[captured.index("--referer") + 1])
+
+    def test_selected_video_only_format_is_merged_with_best_audio(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with mock.patch.object(backend, "DATA_DIR", Path(temp_dir)):
+                api = backend.DesktopApi()
+                item = {
+                    "id": "youtube-2k",
+                    "url": "https://www.youtube.com/watch?v=LXb3EKWsInQ",
+                    "title": "4K test",
+                    "status": "Waiting",
+                    "saveLocation": temp_dir,
+                    "formatId": "701",
+                    "formatHasVideo": True,
+                    "formatHasAudio": False,
+                }
+                api.queue = [item]
+
+                class MockProcess:
+                    stdout = ["download:download: 100%|1.0MiB/s|00:00"]
+                    def poll(self): return 0
+                    def wait(self): return 0
+
+                captured = []
+                with mock.patch("subprocess.Popen", side_effect=lambda args, **_kwargs: captured.extend(args) or MockProcess()):
+                    api._download_one(item)
+                selector = captured[captured.index("-f") + 1]
+                self.assertEqual("701+bestaudio/701/best", selector)
 
     def test_tiktok_download_retries_403_with_compatibility_identity(self):
         with tempfile.TemporaryDirectory() as temp_dir:

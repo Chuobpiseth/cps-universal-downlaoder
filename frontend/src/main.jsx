@@ -130,7 +130,7 @@ function waitForApi() {
   const preview = new URLSearchParams(location.search)
   if (preview.has('preview')) {
     const settings = { theme: preview.get('theme') || 'Light', language: preview.get('language') || 'English', saveLocation: 'C:\\Users\\User\\Downloads', conversionLocation: 'C:\\Users\\User\\Videos\\CPS Converted', parallelDownloads: 2, concurrentFragments: 4, browserCookies: 'None', preventDuplicates: true, filenameTemplate: '%(title)s [%(id)s].%(ext)s', apiToken: 'local-preview-token', aiProvider: 'Gemini', geminiModel: 'gemini-2.5-flash', codecraftModel: 'claude-opus-4.8', customApiBase: 'https://api.openai.com/v1', customApiModel: '', subtitleLanguage: 'en', embedSubtitles: false, sponsorBlock: false, splitChapters: false, updateChannel: 'Stable', hasGeminiKey: false, hasCodecraftApiKey: false, hasCustomApiKey: false }
-    return Promise.resolve({ bootstrap: async () => ({ version: '1.2.7-preview', settings, queue: [], history: [], activity: [], recipes: [], conversions: [], updateStatus: { status: 'current', currentVersion: '1.2.7-preview', available: false, message: 'Preview build' }, toolsReady: true, extensionReady: true }), get_state: async () => ({ queue: [], history: [], activity: [], recipes: [], conversions: [], updateStatus: { status: 'current', currentVersion: '1.2.7-preview', available: false, message: 'Preview build' }, running: false }), list_gemini_keys_masked: async () => [] })
+    return Promise.resolve({ bootstrap: async () => ({ version: '1.2.8-preview', settings, queue: [], history: [], activity: [], recipes: [], conversions: [], updateStatus: { status: 'current', currentVersion: '1.2.8-preview', available: false, message: 'Preview build' }, toolsReady: true, extensionReady: true }), get_state: async () => ({ queue: [], history: [], activity: [], recipes: [], conversions: [], updateStatus: { status: 'current', currentVersion: '1.2.8-preview', available: false, message: 'Preview build' }, running: false }), list_gemini_keys_masked: async () => [] })
   }
   if (window.pywebview?.api) return Promise.resolve(window.pywebview.api)
   return new Promise(resolve => window.addEventListener('pywebviewready', () => resolve(window.pywebview.api), { once: true }))
@@ -306,7 +306,19 @@ function App() {
     return () => clearTimeout(timer)
   }, [toast])
 
-  const options = (fid = formatId) => ({ kind, quality, format, formatId: fid, startTime, endTime, saveLocation: settingsDraft?.saveLocation, subtitleLanguage: settingsDraft?.subtitleLanguage, embedSubtitles: settingsDraft?.embedSubtitles, sponsorBlock: settingsDraft?.sponsorBlock, splitChapters: settingsDraft?.splitChapters })
+  const options = (fid = formatId) => {
+    const selectedFormat = (media?.formats || []).find(item => item.id === fid)
+    return {
+      kind, quality, format, formatId: fid,
+      formatHasVideo: Boolean(selectedFormat?.videoCodec && selectedFormat.videoCodec !== 'none'),
+      formatHasAudio: Boolean(selectedFormat?.audioCodec && selectedFormat.audioCodec !== 'none'),
+      startTime, endTime, saveLocation: settingsDraft?.saveLocation,
+      subtitleLanguage: settingsDraft?.subtitleLanguage,
+      embedSubtitles: settingsDraft?.embedSubtitles,
+      sponsorBlock: settingsDraft?.sponsorBlock,
+      splitChapters: settingsDraft?.splitChapters
+    }
+  }
   const waitingIds = queue.filter(item => item.selected && item.status === 'Waiting').map(item => item.id)
   const active = queue.filter(item => !['Completed'].includes(item.status))
 
@@ -883,10 +895,10 @@ function App() {
                 {busy ? t('Working…') : media?.entries?.length ? `${t('Download')} ${playlistSelection.length} ${t('selected')}` : t('Download now')}
               </Button>
               <div className="preset-grid">
-                <button onClick={() => { setKind('Video'); setQuality('Best'); setFormat('MP4') }}><Sparkles/> {t('Best')}</button>
-                <button onClick={() => { setKind('Video'); setQuality('1080p'); setFormat('MP4') }}><Zap/> 1080p</button>
-                <button onClick={() => { setKind('Video'); setQuality('720p'); setFormat('MP4') }}><Gauge/> {t('Small')}</button>
-                <button onClick={() => { setKind('Audio'); setFormat('MP3') }}><FontAwesomeIcon icon={faMusic}/> MP3</button>
+                <button onClick={() => { setKind('Video'); setQuality('Best'); setFormat('MP4'); setFormatId('') }}><Sparkles/> {t('Best')}</button>
+                <button onClick={() => { setKind('Video'); setQuality('1080p'); setFormat('MP4'); setFormatId('') }}><Zap/> 1080p</button>
+                <button onClick={() => { setKind('Video'); setQuality('720p'); setFormat('MP4'); setFormatId('') }}><Gauge/> {t('Small')}</button>
+                <button onClick={() => { setKind('Audio'); setFormat('MP3'); setFormatId('') }}><FontAwesomeIcon icon={faMusic}/> MP3</button>
               </div>
               <p className="analyze-safety">{t('Analyze only previews media. Downloads start only after you select videos and click this button.')}</p>
               <div className="save-location">

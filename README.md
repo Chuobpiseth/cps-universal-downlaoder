@@ -1,4 +1,4 @@
-# CPS Universal Downloader 1.2.7
+# CPS Universal Downloader 1.2.8
 
 A polished Windows video workspace for downloading authorized media, converting files, creating subtitles, and understanding videos with multi-provider AI.
 
@@ -12,10 +12,10 @@ A polished Windows video workspace for downloading authorized media, converting 
 
 Run `build-portable.ps1`. It compiles the UI, runs tests, and creates:
 
-- `build-v1.2.7\CPSUniversalDownloader.exe`
-- `release\CPS-Universal-Downloader-v1.2.7-Portable.exe`
-- `release\CPS-Universal-Downloader-v1.2.7-Windows-x64-Single-EXE.zip`
-- `release\CPS-Universal-Downloader-v1.2.7-Setup.exe`
+- `build-v1.2.8\CPSUniversalDownloader.exe`
+- `release\CPS-Universal-Downloader-v1.2.8-Portable.exe`
+- `release\CPS-Universal-Downloader-v1.2.8-Windows-x64-Single-EXE.zip`
+- `release\CPS-Universal-Downloader-v1.2.8-Setup.exe`
 
 Customers can open the standalone EXE directly or use the per-user installer. Neither format requires Python or Node. Both store personal state in `%LOCALAPPDATA%\CPS Universal Downloader`.
 
@@ -41,7 +41,7 @@ Download and conversion destinations are configured independently in Settings. T
 
 History stores the exact final output path and automatically repairs older entries whose Unicode filenames were decoded incorrectly. The History page also contains a persistent activity log for analysis, queue, download, completion, cancellation, and error events.
 
-Version 1.2.7 isolates the browser download overlay from website video players, removes high-frequency TikTok DOM scans, resolves the active feed post or stream with its Referer, and adds browser-assisted Douyin profile/category discovery with manual selection before download. Version 1.2.6 fixed YouTube HTTP 429 rate-limiting, GVS PO token issues, and bot-check errors with automatic multi-client fallback.
+Version 1.2.8 adds a native Telegram Web media downloader to extension 3.6.0 and forces automatic Best quality to merge the highest-resolution video with the best audio instead of falling back to a progressive 720p stream. Version 1.2.7 isolates the browser download overlay from website video players, removes high-frequency TikTok DOM scans, resolves the active feed post or stream with its Referer, and adds browser-assisted Douyin profile/category discovery with manual selection before download.
 
 The installer uses `%LOCALAPPDATA%\Programs\CPS Universal Downloader`, needs no administrator rights, and creates Start Menu and optional desktop shortcuts. Uninstalling the program leaves personal settings and history intact.
 

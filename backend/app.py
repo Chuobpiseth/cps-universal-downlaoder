@@ -29,7 +29,7 @@ from urllib.parse import parse_qs, quote, urlparse
 
 
 APP_NAME = "CPS Universal Downloader Premium"
-APP_VERSION = "1.2.7"
+APP_VERSION = "1.2.8"
 TIKTOK_FALLBACK_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 OPR/118.0.0.0"
 GITHUB_REPOSITORY = "Chuobpiseth/cps-universal-downlaoder"
 GITHUB_RELEASE_API = f"https://api.github.com/repos/{GITHUB_REPOSITORY}/releases/latest"
@@ -139,6 +139,8 @@ def compact_format(entry: dict[str, Any]) -> dict[str, Any]:
         "id": str(entry.get("format_id") or ""),
         "label": str(entry.get("format_note") or entry.get("resolution") or entry.get("format") or "Unknown"),
         "extension": str(entry.get("ext") or ""),
+        "width": entry.get("width"),
+        "height": entry.get("height"),
         "resolution": str(entry.get("resolution") or (f'{entry.get("width")}x{entry.get("height")}' if entry.get("width") and entry.get("height") else "audio only" if entry.get("vcodec") == "none" else "—")),
         "fps": entry.get("fps"),
         "videoCodec": str(entry.get("vcodec") or "none"),
@@ -238,8 +240,11 @@ def format_selector(quality: str) -> str:
     }
     height = limits.get(quality.strip()) if isinstance(quality, str) else None
     if height:
-        return f"bv*[height<=?{height}]+ba/b[height<=?{height}]/bv*+ba/b/best"
-    return "bv*+ba/b/best"
+        return f"bv[height<=?{height}]+ba/b[height<=?{height}]/best[height<=?{height}]"
+    # High-resolution YouTube formats are commonly separate video-only
+    # streams. Force the best video and best audio pair so a progressive 720p
+    # format cannot win merely because it already contains audio.
+    return "bestvideo+bestaudio/best"
 
 
 def parse_progress(line: str) -> dict[str, Any] | None:
@@ -719,7 +724,7 @@ class DesktopApi:
                 thumbnail = f"https://i.ytimg.com/vi/{entry['id']}/hqdefault.jpg"
             entries.append({"url": item_url, "title": entry.get("title") or "Untitled video", "thumbnail": thumbnail, "duration": entry.get("duration"), "platform": extractor})
         formats = [compact_format(item) for item in (info.get("formats") or []) if item and item.get("format_id")]
-        formats.sort(key=lambda item: ((item.get("size") or 0), (item.get("bitrate") or 0)), reverse=True)
+        formats.sort(key=lambda item: ((item.get("height") or 0), (item.get("fps") or 0), (item.get("bitrate") or 0), (item.get("size") or 0)), reverse=True)
         subtitles = []
         for source, generated in ((info.get("subtitles") or {}, False), (info.get("automatic_captions") or {}, True)):
             for language, tracks in source.items():
@@ -820,6 +825,8 @@ class DesktopApi:
                     "quality": options.get("quality", "Best"),
                     "format": options.get("format", "MP4"),
                     "formatId": str(options.get("formatId") or ""),
+                    "formatHasVideo": bool(options.get("formatHasVideo", False)),
+                    "formatHasAudio": bool(options.get("formatHasAudio", False)),
                     "subtitleLanguage": str(options.get("subtitleLanguage") or self.settings.get("subtitleLanguage") or ""),
                     "embedSubtitles": bool(options.get("embedSubtitles", self.settings.get("embedSubtitles", False))),
                     "sponsorBlock": bool(options.get("sponsorBlock", self.settings.get("sponsorBlock", False))),
@@ -1059,7 +1066,10 @@ class DesktopApi:
                     quality_str = str(item.get("quality", "Best"))
                     format_id = str(item.get("formatId") or "").strip()
                     if format_id:
-                        args += ["-f", f"{format_id}/bv*+ba/b/best"]
+                        if item.get("formatHasVideo") and not item.get("formatHasAudio"):
+                            args += ["-f", f"{format_id}+bestaudio/{format_id}/best"]
+                        else:
+                            args += ["-f", f"{format_id}/best"]
                     else:
                         args += ["-f", format_selector(quality_str)]
                     limits = {"4K / 2160p": 2160, "2160p": 2160, "1440p": 1440, "1080p": 1080, "720p": 720, "480p": 480, "360p": 360}
